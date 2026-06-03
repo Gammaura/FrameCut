@@ -69,6 +69,9 @@ export function AuthProvider({ children }) {
                             
                             setUser(googleUser);
                             localStorage.setItem('framecut_user', JSON.stringify(googleUser));
+                            if (typeof window !== 'undefined') {
+                                sessionStorage.removeItem('framecut_active_image');
+                            }
 
                             // Redirect back to page where OAuth was triggered
                             const redirectBack = localStorage.getItem('google_auth_redirect_back');
@@ -105,6 +108,9 @@ export function AuthProvider({ children }) {
 
         setUser(mockUser);
         localStorage.setItem('framecut_user', JSON.stringify(mockUser));
+        if (typeof window !== 'undefined') {
+            sessionStorage.removeItem('framecut_active_image');
+        }
         setShowAuthModal(false);
     };
 
@@ -121,6 +127,9 @@ export function AuthProvider({ children }) {
         }
         setUser(mockUser);
         localStorage.setItem('framecut_user', JSON.stringify(mockUser));
+        if (typeof window !== 'undefined') {
+            sessionStorage.removeItem('framecut_active_image');
+        }
         setShowAuthModal(false);
     };
 
@@ -149,6 +158,9 @@ export function AuthProvider({ children }) {
     const logout = () => {
         setUser(null);
         localStorage.removeItem('framecut_user');
+        if (typeof window !== 'undefined') {
+            sessionStorage.removeItem('framecut_active_image');
+        }
     };
 
     const upgradePlan = (tier) => {

@@ -1185,6 +1185,22 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
         setSelectedTextId(null);
     };
 
+    const clearWorkspaceImage = () => {
+        if (typeof window !== 'undefined') {
+            sessionStorage.removeItem('framecut_active_image');
+        }
+        setOriginalImage(null);
+        setOriginalImageData(null);
+        setResultImageData(null);
+        setImageLoaded(false);
+        setCurrentView('original');
+        setLastClickedPixel(null);
+        setZoom(1);
+        setPanX(0);
+        setPanY(0);
+        showToast('Active image cleared!', 'info');
+    };
+
     // Global viewport actions
     const resetEditor = () => {
         if (!originalImage) return;
@@ -1446,8 +1462,11 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
 
             {/* Application Header Navigation */}
             <header className="app-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '16px 24px', boxSizing: 'border-box', borderBottom: '1px solid var(--panel-border)', background: 'rgba(9, 9, 11, 0.5)', backdropFilter: 'blur(8px)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    <Link href="/" className="logo" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <Link href="/editor" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', textDecoration: 'none', fontSize: '13px', fontWeight: '700', padding: '6px 14px', borderRadius: '20px', border: '1px solid var(--panel-border)', background: 'rgba(255,255,255,0.03)', transition: 'all 0.2s', cursor: 'pointer' }} className="dropdown-item-hover">
+                        <span>← Dashboard</span>
+                    </Link>
+                    <Link href="/editor" className="logo" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
                             <rect x="2" y="2" width="28" height="28" rx="6" stroke="url(#logoGrad)" strokeWidth="2.5" fill="none"/>
                             <rect x="7" y="7" width="8" height="8" rx="2" fill="url(#logoGrad)" opacity="0.6"/>
@@ -1599,69 +1618,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                 <section className="section editor-section" style={{ display: 'flex', width: '100%', height: '100%', overflow: 'hidden' }}>
                     <div className="editor-layout" style={{ display: 'flex', width: '100%', height: '100%', width: '100%' }}>
                         
-                        {/* LEFT TOOLBAR (15 TOOLS SELECTOR) */}
-                        <div className="editor-toolbar">
-                            <button className={`toolbar-btn ${activeTool === 'bg-remover' ? 'active' : ''}`} onClick={() => handleToolChange('bg-remover')}>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M20 20H4v-1.5A2.5 2.5 0 0 1 6.5 16h11A2.5 2.5 0 0 1 20 18.5V20z"/><path d="M12 2v11M8 6l4-4 4 4"/></svg>
-                                <span className="tooltip">BG Remover</span>
-                            </button>
-                            <button className={`toolbar-btn ${activeTool === 'upscaler' ? 'active' : ''}`} onClick={() => handleToolChange('upscaler')}>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="m15 18 3 3 3-3M21 21v-6M9 6 6 3 3 6M3 3v6"/></svg>
-                                <span className="tooltip">Image Upscaler</span>
-                            </button>
-                            <button className={`toolbar-btn ${activeTool === 'video-remover' ? 'active' : ''}`} onClick={() => handleToolChange('video-remover')}>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M23 7a2 2 0 0 0-2.45-1.45L16 7V5a2 2 0 0 0-2-2H2a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2l4.55 1.45A2 2 0 0 0 23 17V7z"/></svg>
-                                <span className="tooltip">Video BG Remover</span>
-                            </button>
-                            <button className={`toolbar-btn ${activeTool === 'change-bg' ? 'active' : ''}`} onClick={() => handleToolChange('change-bg')}>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-                                <span className="tooltip">Change BG</span>
-                            </button>
-                            <button className={`toolbar-btn ${activeTool === 'magic-eraser' ? 'active' : ''}`} onClick={() => handleToolChange('magic-eraser')}>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="m12 3-1.912 5.886L5 9l5.088 1.114L12 16l1.912-5.886L19 9l-5.088-1.114L12 3z"/></svg>
-                                <span className="tooltip">Magic Eraser</span>
-                            </button>
-                            <button className={`toolbar-btn ${activeTool === 'ai-generator' ? 'active' : ''}`} onClick={() => handleToolChange('ai-generator')}>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 2a10 10 0 0 0-7.75 16.3l.08.1a9.96 9.96 0 0 0 15.34 0l.08-.1A10 10 0 0 0 12 2z"/><circle cx="12" cy="10" r="3"/></svg>
-                                <span className="tooltip">AI Image Generator</span>
-                            </button>
-                            <button className={`toolbar-btn ${activeTool === 'ai-video' ? 'active' : ''}`} onClick={() => handleToolChange('ai-video')}>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="2" y="2" width="20" height="20" rx="2.18"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5"/></svg>
-                                <span className="tooltip">AI Video Generator</span>
-                            </button>
-                            <button className={`toolbar-btn ${activeTool === 'generative-fill' ? 'active' : ''}`} onClick={() => handleToolChange('generative-fill')}>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 2v20M2 12h20"/><rect x="5" y="5" width="14" height="14" rx="2" strokeDasharray="3 3"/></svg>
-                                <span className="tooltip">Generative Fill</span>
-                            </button>
-                            <button className={`toolbar-btn ${activeTool === 'uncrop' ? 'active' : ''}`} onClick={() => handleToolChange('uncrop')}>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M21 3H3v18h18V3zM7 7h10v10H7V7z"/></svg>
-                                <span className="tooltip">Uncrop (AI Expand)</span>
-                            </button>
-                            <button className={`toolbar-btn ${activeTool === 'ai-ads' ? 'active' : ''}`} onClick={() => handleToolChange('ai-ads')}>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M6 12h12M6 8h12M6 16h12"/></svg>
-                                <span className="tooltip">AI Ads Creator</span>
-                            </button>
-                            <button className={`toolbar-btn ${activeTool === 'bulk-editor' ? 'active' : ''}`} onClick={() => handleToolChange('bulk-editor')}>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="3" y="3" width="13" height="13" rx="2"/><rect x="8" y="8" width="13" height="13" rx="2" fill="none"/></svg>
-                                <span className="tooltip">Bulk Editor</span>
-                            </button>
-                            <button className={`toolbar-btn ${activeTool === 'adjustments' ? 'active' : ''}`} onClick={() => handleToolChange('adjustments')}>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
-                                <span className="tooltip">Adjustments</span>
-                            </button>
-                            <button className={`toolbar-btn ${activeTool === 'text-overlay' ? 'active' : ''}`} onClick={() => handleToolChange('text-overlay')}>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
-                                <span className="tooltip">Text & Overlay</span>
-                            </button>
-                            <button className={`toolbar-btn ${activeTool === 'crop-rotate' ? 'active' : ''}`} onClick={() => handleToolChange('crop-rotate')}>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M21 17a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H10a2 2 0 0 0-2 2v1H3a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h1v4h12v-4h5z"/></svg>
-                                <span className="tooltip">Rotate & Crop</span>
-                            </button>
-                            <button className={`toolbar-btn ${activeTool === 'brush-draw' ? 'active' : ''}`} onClick={() => handleToolChange('brush-draw')}>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M18 22H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h15a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1zM21 4h1a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-1"/></svg>
-                                <span className="tooltip">Doodle Brush</span>
-                            </button>
-                        </div>
+
 
                         {/* CONTROLS SIDEBAR COLUMN */}
                         <div className="controls-panel glass-panel" style={{ width: '300px', display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
@@ -2109,7 +2066,8 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                                 Download Output
                             </button>
 
-                            <button className="editor-btn editor-btn-outline editor-btn-sm" onClick={resetEditor} disabled={!imageLoaded} style={{ marginTop: '8px', width: '100%' }}>Reset Workspace</button>
+                            <button className="editor-btn editor-btn-outline editor-btn-sm" onClick={resetEditor} disabled={!imageLoaded} style={{ marginTop: '8px', width: '100%' }}>Reset Adjustments</button>
+                            <button className="editor-btn editor-btn-outline editor-btn-sm" onClick={clearWorkspaceImage} disabled={!imageLoaded} style={{ marginTop: '8px', width: '100%', color: '#f87171', borderColor: 'rgba(239, 68, 68, 0.2)' }}>Clear Active Image</button>
                             <button className="editor-btn editor-btn-outline editor-btn-sm" onClick={triggerNewUpload} style={{ marginTop: '8px', width: '100%' }}>Upload New Image</button>
                         </div>
 
