@@ -717,7 +717,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
     };
 
     // Low-level high-performance Background Removal Flood Fill mask logic
-    const applyTransparency = () => {
+    const applyTransparency = (overrideColor = null) => {
         if (!originalImageData) return;
         setProcessing({ visible: true, progress: 20, title: 'Removing background...' });
 
@@ -731,7 +731,8 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
             const freshImgData = baseCtx.getImageData(0, 0, w, h);
             const data = freshImgData.data;
             
-            const seedPoints = contiguous ? findSeedPoints(data, w, h, targetColor, tolerance) : [];
+            const activeColor = overrideColor || targetColor;
+            const seedPoints = contiguous ? findSeedPoints(data, w, h, activeColor, tolerance) : [];
             setProcessing({ visible: true, progress: 50, title: 'Applying alpha mask...' });
 
             const toleranceSq = tolerance * tolerance;
@@ -767,7 +768,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                                 const pidx = nidx * 4;
                                 const distSq = colorDistanceSq(
                                     data[pidx], data[pidx + 1], data[pidx + 2],
-                                    targetColor.r, targetColor.g, targetColor.b
+                                    activeColor.r, activeColor.g, activeColor.b
                                 );
                                 if (distSq <= toleranceSq) {
                                     queue.push(nidx);
@@ -780,7 +781,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                 for (let i = 0; i < data.length; i += 4) {
                     const distSq = colorDistanceSq(
                         data[i], data[i + 1], data[i + 2],
-                        targetColor.r, targetColor.g, targetColor.b
+                        activeColor.r, activeColor.g, activeColor.b
                     );
                     if (distSq <= toleranceSq) {
                         data[i + 3] = 0;
@@ -855,6 +856,39 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
         });
     };
 
+    const detectBackgroundColorFromCorners = (imgData) => {
+        if (!imgData) return { r: 255, g: 255, b: 255 };
+        const data = imgData.data;
+        const w = imgData.width;
+        const h = imgData.height;
+        
+        // Sample the 4 corners: top-left, top-right, bottom-left, bottom-right
+        const corners = [
+            { x: 0, y: 0 },
+            { x: w - 1, y: 0 },
+            { x: 0, y: h - 1 },
+            { x: w - 1, y: h - 1 }
+        ];
+        
+        const counts = {};
+        for (const pt of corners) {
+            const idx = (pt.y * w + pt.x) * 4;
+            const r = data[idx];
+            const g = data[idx + 1];
+            const b = data[idx + 2];
+            const key = `${r},${g},${b}`;
+            counts[key] = (counts[key] || 0) + 1;
+        }
+        
+        // Find the most frequent color
+        let bestKey = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
+        if (bestKey) {
+            const [r, g, b] = bestKey.split(',').map(Number);
+            return { r, g, b };
+        }
+        return { r: 255, g: 255, b: 255 }; // default white
+    };
+
     // Fast AI Fallback (MediaPipe Selfie Segmentation)
     const applyMediaPipeCutout = async (img, imgData) => {
         setProcessing({ visible: true, progress: 20, title: 'Loading Fast AI Model...' });
@@ -919,8 +953,25 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                 // 2. Threshold the mask to get a clean binary mask (0 or 255)
                 // This removes fuzzy, semi-transparent background halos
                 const binaryMask = new Uint8Array(w * h);
+                let foregroundPixels = 0;
                 for (let i = 0; i < w * h; i++) {
-                    binaryMask[i] = rawMask[i] > 120 ? 255 : 0;
+                    const val = rawMask[i] > 120 ? 255 : 0;
+                    binaryMask[i] = val;
+                    if (val === 255) {
+                        foregroundPixels++;
+                    }
+                }
+
+                // If foreground is extremely small (less than 3% of the image), it is highly likely a logo or object without a person.
+                // Fall back to Chroma Key color detection instead of removing the entire image.
+                const foregroundRatio = foregroundPixels / (w * h);
+                if (foregroundRatio < 0.03) {
+                    selfieSegmentation.close();
+                    const detectedBg = detectBackgroundColorFromCorners(imgData);
+                    setTargetColor(detectedBg);
+                    showToast('Logo/graphics detected. Auto-removing background color...', 'info');
+                    applyTransparency(detectedBg);
+                    return;
                 }
                 
                 // 3. Erode the mask to cut slightly into the subject and remove the background outline
