@@ -2412,7 +2412,8 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                                         onMouseLeave={() => setLoupe(l => ({ ...l, visible: false }))}
                                         style={{ flex: 1, position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                     >
-                                        <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'conic-gradient(#f1f5f9 0.25turn, #ffffff 0.25turn 0.5turn, #f1f5f9 0.5turn 0.75turn, #ffffff 0.75turn)', backgroundSize: '20px 20px' }}></div>
+                                        {/* Minimal solid light grey background for the outer viewport wrapper */}
+                                        <div style={{ position: 'absolute', inset: 0, zIndex: 0, background: '#f8fafc' }}></div>
                                         
                                         <div 
                                             className="canvas-container"
@@ -2421,10 +2422,69 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                                                 transformOrigin: 'center center',
                                                 cursor: activeTool === 'magic-eraser' || activeTool === 'brush-draw' || activeTool === 'generative-fill' ? 'crosshair' : isDragging ? 'grabbing' : 'grab',
                                                 position: 'relative',
-                                                zIndex: 1
+                                                zIndex: 1,
+                                                borderRadius: '24px',
+                                                boxShadow: '0 20px 48px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.02)',
+                                                border: '1px solid rgba(0, 0, 0, 0.06)',
+                                                overflow: 'hidden',
+                                                backgroundImage: 'conic-gradient(#f1f5f9 0.25turn, #ffffff 0.25turn 0.5turn, #f1f5f9 0.5turn 0.75turn, #ffffff 0.75turn)',
+                                                backgroundSize: '20px 20px'
                                             }}
                                         >
-                                            <canvas ref={mainCanvasRef} id="main-canvas" style={{ display: 'block', maxWidth: 'none', boxShadow: '0 12px 32px rgba(0,0,0,0.12)', borderRadius: '4px' }}></canvas>
+                                            <canvas ref={mainCanvasRef} id="main-canvas" style={{ display: 'block', maxWidth: 'none' }}></canvas>
+                                            
+                                            {currentView === 'result' && (
+                                                <>
+                                                    {/* Floating Edit in Canva Button */}
+                                                    <div style={{ position: 'absolute', top: '24px', left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}>
+                                                        <a 
+                                                            href="https://www.canva.com" 
+                                                            target="_blank" 
+                                                            rel="noopener noreferrer" 
+                                                            style={{ 
+                                                                display: 'flex', 
+                                                                alignItems: 'center', 
+                                                                gap: '8px', 
+                                                                background: '#ffffff', 
+                                                                border: '1px solid rgba(0, 0, 0, 0.08)', 
+                                                                padding: '10px 20px', 
+                                                                borderRadius: '999px', 
+                                                                textDecoration: 'none', 
+                                                                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.08)', 
+                                                                transition: 'all 0.2s', 
+                                                                cursor: 'pointer' 
+                                                            }}
+                                                            onMouseEnter={(e) => {
+                                                                e.currentTarget.style.transform = 'scale(1.05)';
+                                                                e.currentTarget.style.boxShadow = '0 12px 28px rgba(0, 0, 0, 0.12)';
+                                                            }}
+                                                            onMouseLeave={(e) => {
+                                                                e.currentTarget.style.transform = 'scale(1)';
+                                                                e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.08)';
+                                                            }}
+                                                        >
+                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                                                <circle cx="12" cy="12" r="12" fill="url(#canvaLogoGrad)"/>
+                                                                <path d="M12 5.5c-3.6 0-6.5 2.9-6.5 6.5s2.9 6.5 6.5 6.5c2.3 0 4.3-1.2 5.4-3h-2.2c-.8.8-1.9 1.3-3.2 1.3-2.5 0-4.5-2-4.5-4.5S9.5 8 12 8c1.3 0 2.4.5 3.2 1.3h2.2c-1.1-1.8-3.1-3-5.4-3z" fill="#fff"/>
+                                                                <defs>
+                                                                    <linearGradient id="canvaLogoGrad" x1="0" y1="0" x2="24" y2="24">
+                                                                        <stop offset="0%" stopColor="#00c4cc"/>
+                                                                        <stop offset="100%" stopColor="#7d2ae8"/>
+                                                                    </linearGradient>
+                                                                </defs>
+                                                            </svg>
+                                                            <span style={{ fontSize: '14px', fontWeight: '700', color: '#1e293b' }}>Edit in Canva</span>
+                                                        </a>
+                                                    </div>
+
+                                                    {/* Floating Terms of Service Agreement footer */}
+                                                    <div style={{ position: 'absolute', bottom: '20px', left: '0', right: '0', textAlign: 'center', zIndex: 10 }}>
+                                                        <span style={{ fontSize: '11px', color: '#64748b', background: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(8px)', padding: '6px 16px', borderRadius: '99px', border: '1px solid rgba(0, 0, 0, 0.05)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+                                                            By sending your image to Canva you agree to <a href="https://www.canva.com/policies/terms-of-use/" target="_blank" rel="noopener noreferrer" style={{ color: '#6366f1', textDecoration: 'underline', fontWeight: '600' }}>Canva's Terms of Service</a>.
+                                                        </span>
+                                                    </div>
+                                                </>
+                                            )}
                                             
                                             {lastClickedPixel && activeTool === 'bg-remover' && (
                                                 <div 
