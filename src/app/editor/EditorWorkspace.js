@@ -533,9 +533,11 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
             const baseCtx = canvas.getContext('2d');
             canvas.width = w;
             canvas.height = h;
-            baseCtx.drawImage(img, 0, 0);
-            
-            const freshImgData = baseCtx.getImageData(0, 0, w, h);
+            const freshImgData = new ImageData(
+                new Uint8ClampedArray(imgData.data),
+                w,
+                h
+            );
             const freshData = freshImgData.data;
 
             const toleranceSq = 55 * 55;
@@ -722,13 +724,14 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
         setProcessing({ visible: true, progress: 20, title: 'Removing background...' });
 
         setTimeout(() => {
-            const canvas = mainCanvasRef.current;
             const w = originalImageData.width;
             const h = originalImageData.height;
-            const baseCtx = canvas.getContext('2d');
             
-            baseCtx.drawImage(originalImage, 0, 0);
-            const freshImgData = baseCtx.getImageData(0, 0, w, h);
+            const freshImgData = new ImageData(
+                new Uint8ClampedArray(originalImageData.data),
+                w,
+                h
+            );
             const data = freshImgData.data;
             
             const activeColor = overrideColor || targetColor;
@@ -919,12 +922,11 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                 tempCtx.drawImage(results.segmentationMask, 0, 0, w, h);
                 const maskData = tempCtx.getImageData(0, 0, w, h).data;
                 
-                const outCanvas = document.createElement('canvas');
-                outCanvas.width = w;
-                outCanvas.height = h;
-                const outCtx = outCanvas.getContext('2d');
-                outCtx.drawImage(img, 0, 0, w, h);
-                const outImageData = outCtx.getImageData(0, 0, w, h);
+                const outImageData = new ImageData(
+                    new Uint8ClampedArray(imgData.data),
+                    w,
+                    h
+                );
                 const oData = outImageData.data;
                 
                 // Determine which channel to use (Red or Alpha) based on channel variation
