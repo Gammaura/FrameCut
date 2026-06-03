@@ -2,9 +2,11 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { useAuth } from './context/AuthContext';
 import './landing.css';
 
 export default function Home() {
+    const { user, logout, setShowAuthModal, setAuthMode } = useAuth();
     const [sliderPos, setSliderPos] = useState(50);
     const containerRef = useRef(null);
     const isSliding = useRef(false);
@@ -88,7 +90,21 @@ export default function Home() {
                         <Link href="/pricing" className="nav-link">Pricing</Link>
                         <Link href="/api" className="nav-link">API</Link>
                     </nav>
-                    <Link href="/editor" className="btn btn-glass">Launch App</Link>
+                    {user ? (
+                        <div className="nav-auth-group" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            <span className="user-badge" style={{ fontSize: '13px', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--panel-border)', padding: '6px 12px', borderRadius: '999px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: user.tier === 'free' ? '#9595b0' : user.tier === 'pro' ? '#a78bfa' : '#06b6d4' }}></span>
+                                {user.email.split('@')[0]} ({user.tier.toUpperCase()})
+                            </span>
+                            <button className="nav-link" onClick={logout} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>Log Out</button>
+                            <Link href="/editor" className="btn btn-glass">Launch App</Link>
+                        </div>
+                    ) : (
+                        <div className="nav-auth-group" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            <button className="nav-link" onClick={() => { setAuthMode('login'); setShowAuthModal(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>Log In</button>
+                            <Link href="/editor" className="btn btn-glass">Launch App</Link>
+                        </div>
+                    )}
                 </div>
             </header>
 

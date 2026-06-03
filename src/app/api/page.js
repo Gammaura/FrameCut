@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useAuth } from '../context/AuthContext';
 import '../landing.css';
 
 export default function ApiDocs() {
+    const { user, logout, setShowAuthModal, setShowUpgradeModal, setAuthMode, generateNewApiKey } = useAuth();
     const [selectedTab, setSelectedTab] = useState('curl'); // 'curl' | 'js' | 'python'
 
     const codeSamples = {
@@ -87,7 +89,21 @@ if response.status_code == 200:
                         <Link href="/pricing" className="nav-link">Pricing</Link>
                         <Link href="/api" className="nav-link active">API</Link>
                     </nav>
-                    <Link href="/editor" className="btn btn-glass">Launch App</Link>
+                    {user ? (
+                        <div className="nav-auth-group" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            <span className="user-badge" style={{ fontSize: '13px', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--panel-border)', padding: '6px 12px', borderRadius: '999px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: user.tier === 'free' ? '#9595b0' : user.tier === 'pro' ? '#a78bfa' : '#06b6d4' }}></span>
+                                {user.email.split('@')[0]} ({user.tier.toUpperCase()})
+                            </span>
+                            <button className="nav-link" onClick={logout} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>Log Out</button>
+                            <Link href="/editor" className="btn btn-glass">Launch App</Link>
+                        </div>
+                    ) : (
+                        <div className="nav-auth-group" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            <button className="nav-link" onClick={() => { setAuthMode('login'); setShowAuthModal(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>Log In</button>
+                            <Link href="/editor" className="btn btn-glass">Launch App</Link>
+                        </div>
+                    )}
                 </div>
             </header>
 
@@ -169,9 +185,55 @@ if response.status_code == 200:
                                 <pre><code>{codeSamples[selectedTab]}</code></pre>
                             </div>
                         </div>
-                        <p className="control-hint" style={{ marginTop: '16px', textAlign: 'center' }}>
-                            Sign up for the <strong>Team Plan</strong> to get your API Token key.
-                        </p>
+                        {user && user.tier === 'team' ? (
+                            <div style={{ marginTop: '24px', padding: '20px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--panel-border)', borderRadius: '16px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                    <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-muted)' }}>YOUR LIVE API KEY</span>
+                                    <button 
+                                        onClick={generateNewApiKey}
+                                        style={{ background: 'none', border: 'none', color: '#06b6d4', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}
+                                    >
+                                        Regenerate Key
+                                    </button>
+                                </div>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <input 
+                                        type="text" 
+                                        readOnly 
+                                        value={user.apiKey || ''} 
+                                        style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--panel-border)', borderRadius: '8px', padding: '10px 12px', fontSize: '13px', color: '#a78bfa', fontFamily: 'monospace' }}
+                                    />
+                                    <button 
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(user.apiKey || '');
+                                            alert('API Key copied to clipboard!');
+                                        }}
+                                        style={{ padding: '10px 16px', background: 'var(--primary-grad)', border: 'none', borderRadius: '8px', fontWeight: '700', color: '#000', cursor: 'pointer', fontSize: '13px' }}
+                                    >
+                                        Copy
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div style={{ marginTop: '24px', padding: '24px', background: 'rgba(6, 182, 212, 0.03)', border: '1px dashed rgba(6, 182, 212, 0.3)', borderRadius: '16px', textAlign: 'center' }}>
+                                <p style={{ fontSize: '14px', marginBottom: '16px', color: 'var(--text-muted)' }}>
+                                    API credentials are locked. Please upgrade to the <strong>Team Plan</strong> to generate live tokens.
+                                </p>
+                                <button 
+                                    onClick={() => {
+                                        if (!user) {
+                                            setAuthMode('signup');
+                                            setShowAuthModal(true);
+                                        } else {
+                                            setShowUpgradeModal(true);
+                                        }
+                                    }}
+                                    style={{ padding: '10px 20px', background: 'var(--primary-grad)', border: 'none', borderRadius: '999px', fontWeight: '700', color: '#000', cursor: 'pointer', fontSize: '13px' }}
+                                >
+                                    Unlock API Key
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </section>

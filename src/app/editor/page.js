@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { useAuth } from '../context/AuthContext';
 import '../editor.css';
 
 // ===== HELPER FUNCTIONS =====
@@ -304,6 +305,7 @@ function evaluateRectangularity(data, w, h, colorCandidate, step) {
 
 // ===== EDITOR COMPONENT =====
 export default function Editor() {
+    const { user, logout, setShowAuthModal, setShowUpgradeModal, setAuthMode, usageCount, incrementUsage } = useAuth();
     const [imageLoaded, setImageLoaded] = useState(false);
     const [originalImage, setOriginalImage] = useState(null);
     const [originalImageData, setOriginalImageData] = useState(null);
@@ -749,6 +751,9 @@ export default function Editor() {
     const downloadPNG = () => {
         if (!resultImageData) return;
 
+        const allowed = incrementUsage();
+        if (!allowed) return;
+
         // Use temporary hidden canvas to perform native data URL export of the result ImageData
         const tempCanvas = document.createElement('canvas');
         tempCanvas.width = resultImageData.width;
@@ -771,24 +776,65 @@ export default function Editor() {
                 <div className="glow glow-3"></div>
             </div>
 
-            <header className="app-header">
-                <Link href="/" className="logo" style={{ textDecoration: 'none' }}>
-                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                        <rect x="2" y="2" width="28" height="28" rx="6" stroke="url(#logoGrad)" stroke-width="2.5" fill="none"/>
-                        <rect x="7" y="7" width="8" height="8" rx="2" fill="url(#logoGrad)" opacity="0.6"/>
-                        <rect x="17" y="7" width="8" height="8" rx="2" fill="url(#logoGrad)" opacity="0.4"/>
-                        <rect x="7" y="17" width="8" height="8" rx="2" fill="url(#logoGrad)" opacity="0.4"/>
-                        <rect x="17" y="17" width="8" height="8" rx="2" fill="url(#logoGrad)" opacity="0.6"/>
-                        <defs>
-                            <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32">
-                                <stop offset="0%" stop-color="#a78bfa"/>
-                                <stop offset="100%" stop-color="#06b6d4"/>
-                            </linearGradient>
-                        </defs>
-                    </svg>
-                    <span className="logo-text">FrameCut</span>
-                </Link>
-                <p className="tagline">Auto-detect & transparentize frame slots</p>
+            <header className="app-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '16px 24px', boxSizing: 'border-box', borderBottom: '1px solid var(--panel-border)', background: 'rgba(9, 9, 11, 0.5)', backdropFilter: 'blur(8px)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <Link href="/" className="logo" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                            <rect x="2" y="2" width="28" height="28" rx="6" stroke="url(#logoGrad)" strokeWidth="2.5" fill="none"/>
+                            <rect x="7" y="7" width="8" height="8" rx="2" fill="url(#logoGrad)" opacity="0.6"/>
+                            <rect x="17" y="7" width="8" height="8" rx="2" fill="url(#logoGrad)" opacity="0.4"/>
+                            <rect x="7" y="17" width="8" height="8" rx="2" fill="url(#logoGrad)" opacity="0.4"/>
+                            <rect x="17" y="17" width="8" height="8" rx="2" fill="url(#logoGrad)" opacity="0.6"/>
+                            <defs>
+                                <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32">
+                                    <stop offset="0%" stopColor="#a78bfa"/>
+                                    <stop offset="100%" stopColor="#06b6d4"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <span className="logo-text">FrameCut</span>
+                    </Link>
+                    <p className="tagline" style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>Auto-detect & transparentize frame slots</p>
+                </div>
+
+                <div className="editor-auth-status" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    {user ? (
+                        <>
+                            <div className="exports-limit-badge" style={{ fontSize: '13px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--panel-border)', padding: '6px 14px', borderRadius: '999px', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-muted)' }}>
+                                <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: user.tier === 'free' ? '#9595b0' : user.tier === 'pro' ? '#a78bfa' : '#06b6d4' }}></span>
+                                <span>Tier: <strong style={{ color: '#fff' }}>{user.tier.toUpperCase()}</strong></span>
+                                {user.tier === 'free' && (
+                                    <span style={{ borderLeft: '1px solid var(--panel-border)', paddingLeft: '10px', color: 'var(--text-muted)' }}>
+                                        Exports: <strong style={{ color: '#a78bfa' }}>{usageCount}/5</strong>
+                                    </span>
+                                )}
+                            </div>
+                            {user.tier === 'free' && (
+                                <button 
+                                    onClick={() => setShowUpgradeModal(true)}
+                                    style={{ padding: '6px 14px', background: 'var(--primary-grad)', border: 'none', borderRadius: '999px', fontSize: '12px', fontWeight: '700', color: '#000', cursor: 'pointer' }}
+                                >
+                                    Upgrade Pro
+                                </button>
+                            )}
+                            <button onClick={logout} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
+                                Log Out
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <div className="exports-limit-badge" style={{ fontSize: '13px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--panel-border)', padding: '6px 14px', borderRadius: '999px', color: 'var(--text-muted)' }}>
+                                Guest Exports: <strong style={{ color: '#a78bfa' }}>{usageCount}/5</strong>
+                            </div>
+                            <button 
+                                onClick={() => { setAuthMode('login'); setShowAuthModal(true); }}
+                                style={{ background: 'none', border: 'none', color: '#06b6d4', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}
+                            >
+                                Log In / Register
+                            </button>
+                        </>
+                    )}
+                </div>
             </header>
 
             <main className="app-main">

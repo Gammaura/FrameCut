@@ -2,14 +2,26 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useAuth } from '../context/AuthContext';
 import '../landing.css';
 
 export default function Pricing() {
+    const { user, logout, setShowAuthModal, setShowUpgradeModal, setAuthMode } = useAuth();
     const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' | 'yearly'
     const [activeFaq, setActiveFaq] = useState(null);
 
     const toggleFaq = (index) => {
         setActiveFaq(activeFaq === index ? null : index);
+    };
+
+    const handleSelectPlan = (planName) => {
+        if (!user) {
+            setAuthMode('signup');
+            setShowAuthModal(true);
+            return;
+        }
+        if (planName === 'Starter') return;
+        setShowUpgradeModal(true);
     };
 
     const plans = [
@@ -104,7 +116,21 @@ export default function Pricing() {
                         <Link href="/pricing" className="nav-link active">Pricing</Link>
                         <Link href="/api" className="nav-link">API</Link>
                     </nav>
-                    <Link href="/editor" className="btn btn-glass">Launch App</Link>
+                    {user ? (
+                        <div className="nav-auth-group" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            <span className="user-badge" style={{ fontSize: '13px', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--panel-border)', padding: '6px 12px', borderRadius: '999px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: user.tier === 'free' ? '#9595b0' : user.tier === 'pro' ? '#a78bfa' : '#06b6d4' }}></span>
+                                {user.email.split('@')[0]} ({user.tier.toUpperCase()})
+                            </span>
+                            <button className="nav-link" onClick={logout} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>Log Out</button>
+                            <Link href="/editor" className="btn btn-glass">Launch App</Link>
+                        </div>
+                    ) : (
+                        <div className="nav-auth-group" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            <button className="nav-link" onClick={() => { setAuthMode('login'); setShowAuthModal(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>Log In</button>
+                            <Link href="/editor" className="btn btn-glass">Launch App</Link>
+                        </div>
+                    )}
                 </div>
             </header>
 
@@ -157,13 +183,14 @@ export default function Pricing() {
                                         ))}
                                     </ul>
                                 </div>
-                                <Link 
-                                    href="/editor" 
+                                <button 
+                                    onClick={() => handleSelectPlan(plan.name)}
                                     className={`btn ${plan.featured ? 'btn-primary' : 'btn-glass'}`}
-                                    style={{ width: '100%', textAlign: 'center' }}
+                                    style={{ width: '100%', textAlign: 'center', border: 'none' }}
+                                    disabled={user?.tier === plan.name.toLowerCase() || (plan.name === 'Starter' && !user)}
                                 >
-                                    {plan.cta}
-                                </Link>
+                                    {user?.tier === plan.name.toLowerCase() ? 'Active Plan' : plan.cta}
+                                </button>
                             </div>
                         );
                     })}
