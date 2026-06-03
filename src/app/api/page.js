@@ -66,7 +66,7 @@ if response.status_code == 200:
         <div className="landing-page-root">
             {/* Header */}
             <header className="navbar">
-                <div className="navbar-container">
+                <div className="nav-container">
                     <Link href="/" className="logo">
                         <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
                             <rect x="2" y="2" width="28" height="28" rx="6" stroke="url(#navLogo)" strokeWidth="2.5" fill="none"/>
