@@ -43,7 +43,7 @@
     --transition-normal: 0.25s ease;
     --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
-    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-sans: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
 }
 
