@@ -20,7 +20,7 @@ export function AuthProvider({ children }) {
             setUser(JSON.parse(storedUser));
         }
 
-        const storedClientId = localStorage.getItem('framecut_google_client_id') || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
+        const storedClientId = localStorage.getItem('framecut_google_client_id') || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '649938599189-qh7r2cf1l2ra9lh40mplfceb1k4mh5n7.apps.googleusercontent.com';
         setGoogleClientId(storedClientId);
 
         const storedUsage = localStorage.getItem('framecut_usage');
