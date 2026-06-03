@@ -155,6 +155,9 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
     const [contiguous, setContiguous] = useState(true);
     const [targetColor, setTargetColor] = useState({ r: 204, g: 0, b: 0 }); // Default red
     const [lastClickedPixel, setLastClickedPixel] = useState(null);
+    const [bgRemoverManualEraseMode, setBgRemoverManualEraseMode] = useState(false);
+    const [manualEraseBrushSize, setManualEraseBrushSize] = useState(24);
+    const [isManualErasing, setIsManualErasing] = useState(false);
 
     // 2. Image Upscaler
     const [upscaleFactor, setUpscaleFactor] = useState(2); // 2 | 4
@@ -1091,6 +1094,43 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
         }
     };
 
+    // Manual pixel eraser for background remover cleanup
+    const erasePixels = (cx, cy, radius) => {
+        const sourceData = resultImageData || originalImageData;
+        if (!sourceData) return;
+        const w = sourceData.width;
+        const h = sourceData.height;
+        const nextData = new ImageData(
+            new Uint8ClampedArray(sourceData.data),
+            w,
+            h
+        );
+        const data = nextData.data;
+        const rSq = radius * radius;
+        
+        const startY = Math.max(0, Math.floor(cy - radius));
+        const endY = Math.min(h - 1, Math.floor(cy + radius));
+        const startX = Math.max(0, Math.floor(cx - radius));
+        const endX = Math.min(w - 1, Math.floor(cx + radius));
+        
+        let changed = false;
+        for (let y = startY; y <= endY; y++) {
+            for (let x = startX; x <= endX; x++) {
+                const distSq = (x - cx) * (x - cx) + (y - cy) * (y - cy);
+                if (distSq <= rSq) {
+                    const idx = (y * w + x) * 4;
+                    if (data[idx + 3] !== 0) {
+                        data[idx + 3] = 0; // Set Alpha to 0 (make transparent)
+                        changed = true;
+                    }
+                }
+            }
+        }
+        if (changed) {
+            setResultImageData(nextData);
+        }
+    };
+
     // ==========================================
     // MULTI-TOOL ALGORITHM ACTIONS IMPLEMENTATIONS
     // ==========================================
@@ -1582,6 +1622,13 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
             return;
         }
 
+        // Manual Erase dragging in background remover
+        if (activeTool === 'bg-remover' && bgRemoverManualEraseMode && currentView === 'result') {
+            setIsManualErasing(true);
+            erasePixels(x, y, manualEraseBrushSize);
+            return;
+        }
+
         // 1. Color Picker selection (Background remover)
         if (activeTool === 'bg-remover' && currentView === 'original') {
             const canvasX = Math.floor(x);
@@ -1611,6 +1658,12 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
         const rect = mainCanvasRef.current.getBoundingClientRect();
         const x = (e.clientX - rect.left) / zoom;
         const y = (e.clientY - rect.top) / zoom;
+
+        // Manual Erase dragging in background remover
+        if (activeTool === 'bg-remover' && bgRemoverManualEraseMode && isManualErasing && currentView === 'result') {
+            erasePixels(x, y, manualEraseBrushSize);
+            return;
+        }
 
         // Hover Loupe magnifier details
         if (activeTool === 'bg-remover' && currentView === 'original') {
@@ -1683,6 +1736,9 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
 
     const handleMouseUp = () => {
         setIsDragging(false);
+        if (activeTool === 'bg-remover' && isManualErasing) {
+            setIsManualErasing(false);
+        }
         if (activeTool === 'brush-draw') setIsDrawingStroke(false);
         if (activeTool === 'magic-eraser' && isDrawingEraser) {
             setIsDrawingEraser(false);
@@ -1983,6 +2039,39 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                                             </div>
                                         </>
                                     )}
+                                    {/* Manual Cleanup Tool */}
+                                    <div style={{ marginTop: '20px', borderTop: '1px solid var(--panel-border)', paddingTop: '16px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                            <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-color)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                🧹 Manual Erase Brush
+                                            </span>
+                                            <label style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer' }}>
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={bgRemoverManualEraseMode} 
+                                                    onChange={(e) => setBgRemoverManualEraseMode(e.target.checked)}
+                                                    style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                                                />
+                                            </label>
+                                        </div>
+                                        <p style={{ fontSize: '11px', color: 'var(--text-muted)', lineHeight: '1.4', margin: '0 0 12px 0' }}>
+                                            Brush over any leftover objects or edges in the "Result" view to make them fully transparent.
+                                        </p>
+                                        
+                                        {bgRemoverManualEraseMode && (
+                                            <div className="control-group">
+                                                <label className="control-label">Eraser Size: <span className="control-value">{manualEraseBrushSize}px</span></label>
+                                                <input 
+                                                    type="range" 
+                                                    className="slider" 
+                                                    min="5" 
+                                                    max="80" 
+                                                    value={manualEraseBrushSize} 
+                                                    onChange={(e) => setManualEraseBrushSize(parseInt(e.target.value))} 
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
 
                                     <button 
                                         className="editor-btn editor-btn-primary" 
@@ -2551,7 +2640,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                                             style={{
                                                 transform: `translate(${panX}px, ${panY}px) scale(${zoom})`,
                                                 transformOrigin: 'center center',
-                                                cursor: activeTool === 'magic-eraser' || activeTool === 'brush-draw' || activeTool === 'generative-fill' ? 'crosshair' : isDragging ? 'grabbing' : 'grab',
+                                                cursor: (activeTool === 'bg-remover' && bgRemoverManualEraseMode) || activeTool === 'magic-eraser' || activeTool === 'brush-draw' || activeTool === 'generative-fill' ? 'crosshair' : isDragging ? 'grabbing' : 'grab',
                                                 position: 'relative',
                                                 zIndex: 1,
                                                 borderRadius: '24px',
