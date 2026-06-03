@@ -181,27 +181,22 @@ export default function Home() {
 
             {/* Hero Section */}
             <section className="hero">
-                <div className="announcement-badge">
-                    <span>✨ Introducing FrameCut v2.0 (Next.js)</span>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <polyline points="9 18 15 12 9 6"/>
-                    </svg>
+                <div className="announcement-badge" style={{ background: '#000000', color: '#ffffff', border: 'none', padding: '8px 20px', borderRadius: '9999px', fontSize: '13px', fontWeight: '500', marginBottom: '24px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}>
+                    <span>Introducing FrameCut for Creators →</span>
                 </div>
-                <h1 className="hero-title">
-                    Meet the most intelligent platform to <span>cut frames</span> and ship transparent assets.
+                <h1 className="hero-title" style={{ fontFamily: "var(--font-inter), 'Inter', sans-serif", fontSize: 'clamp(2.5rem, 6.5vw, 4.8rem)', fontWeight: '500', lineHeight: '1.1', letterSpacing: '-0.025em', color: '#09090b', margin: '0 auto 24px', maxWidth: '900px' }}>
+                    The New Operating System <br /> for Creative Work
                 </h1>
-                <p class="hero-subtitle">
-                    Instantly remove colored slots in image frames. Ultra-high quality contiguous masking, pixel-crisp color selector, and smooth edge anti-aliasing.
+                <p className="hero-subtitle" style={{ fontSize: '18px', color: '#71717a', maxWidth: '650px', margin: '0 auto 36px', fontWeight: '400', lineHeight: '1.5' }}>
+                    Meet the most intelligent platform to create, edit and ship production ready visuals.
                 </p>
-                <div className="hero-ctas">
-                    <Link href="/editor" className="btn btn-primary">
-                        Start Free Editor
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                            <polyline points="12 5 19 12 12 19"/>
-                        </svg>
+                <div className="hero-ctas" style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                    <Link href="/editor" className="btn btn-primary" style={{ background: '#000000', color: '#ffffff', borderRadius: '9999px', fontWeight: '600', padding: '14px 32px', border: 'none', boxShadow: 'none', fontSize: '15px' }}>
+                        Start creating
                     </Link>
-                    <a href="#features" className="btn btn-glass">See Features</a>
+                    <a href="#features" className="btn btn-glass" style={{ background: '#e4e4e7', color: '#09090b', borderRadius: '9999px', fontWeight: '600', padding: '14px 32px', border: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '15px' }}>
+                        <span style={{ fontSize: '10px', marginRight: '4px' }}>▶</span> Watch video
+                    </a>
                 </div>
 
                 {/* Interactive Comparison Slider */}
