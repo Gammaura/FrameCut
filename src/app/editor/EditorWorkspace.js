@@ -611,7 +611,11 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                 fitCanvasToView();
                 
                 if (activeTool === 'bg-remover' || activeTool === 'change-bg') {
-                    autoRemoveBackground(img, imgData);
+                    if (bgRemovalMode === 'ai') {
+                        applyAiAutoCutout(img, imgData);
+                    } else {
+                        autoRemoveBackground(img, imgData);
+                    }
                 } else {
                     autoDetectColor(imgData);
                 }
@@ -849,8 +853,10 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
     };
 
     // AI Automatic Background Removal
-    const applyAiAutoCutout = async () => {
-        if (!originalImage || !originalImageData) return;
+    const applyAiAutoCutout = async (passedImg = null, passedImgData = null) => {
+        const img = passedImg || originalImage;
+        const imgData = passedImgData || originalImageData;
+        if (!img || !imgData) return;
         setProcessing({ visible: true, progress: 20, title: 'Loading AI Model...' });
         
         try {
@@ -869,8 +875,8 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
             let cutoutResult = null;
             
             selfieSegmentation.onResults((results) => {
-                const w = originalImageData.width;
-                const h = originalImageData.height;
+                const w = imgData.width;
+                const h = imgData.height;
                 
                 const tempCanvas = document.createElement('canvas');
                 tempCanvas.width = w;
@@ -884,52 +890,110 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                 outCanvas.width = w;
                 outCanvas.height = h;
                 const outCtx = outCanvas.getContext('2d');
-                outCtx.drawImage(originalImage, 0, 0, w, h);
+                outCtx.drawImage(img, 0, 0, w, h);
                 const outImageData = outCtx.getImageData(0, 0, w, h);
                 const oData = outImageData.data;
                 
-                for (let i = 0; i < maskData.length; i += 4) {
-                    const maskVal = maskData[i]; 
-                    oData[i + 3] = Math.round((oData[i + 3] * maskVal) / 255);
+                // Determine which channel to use (Red or Alpha)
+                // If there is any transparent pixel in the mask, use Alpha. Otherwise use Red.
+                let useAlpha = false;
+                for (let i = 3; i < maskData.length; i += 4) {
+                    if (maskData[i] < 250) {
+                        useAlpha = true;
+                        break;
+                    }
                 }
                 
-                if (softness > 0) {
-                    const alpha = new Uint8Array(w * h);
-                    for (let i = 0; i < w * h; i++) {
-                        alpha[i] = oData[i * 4 + 3];
-                    }
-                    const radius = Math.min(12, softness);
-                    const tempAlpha = new Uint8Array(w * h);
-                    
-                    for (let y = 0; y < h; y++) {
-                        for (let x = 0; x < w; x++) {
-                            let sum = 0;
-                            let count = 0;
-                            for (let dx = -radius; dx <= radius; dx++) {
-                                const nx = x + dx;
-                                if (nx >= 0 && nx < w) {
-                                    sum += alpha[y * w + nx];
-                                    count++;
-                                }
+                // 1. Extract raw mask probabilities (0 to 255)
+                const rawMask = new Uint8Array(w * h);
+                for (let i = 0; i < w * h; i++) {
+                    const idx = i * 4;
+                    const maskVal = useAlpha ? maskData[idx + 3] : maskData[idx];
+                    rawMask[i] = maskVal;
+                }
+                
+                // 2. Threshold the mask to get a clean binary mask (0 or 255)
+                // This removes fuzzy, semi-transparent background halos
+                const binaryMask = new Uint8Array(w * h);
+                for (let i = 0; i < w * h; i++) {
+                    binaryMask[i] = rawMask[i] > 120 ? 255 : 0;
+                }
+                
+                // 3. Erode the mask to cut slightly into the subject and remove the background outline
+                // Scale erosion radius with image size (minimum 1 pixel, max 4 pixels)
+                const erosionRadius = Math.max(1, Math.min(4, Math.round(Math.min(w, h) / 600)));
+                const tempErode = new Uint8Array(w * h);
+                const erodedMask = new Uint8Array(w * h);
+                
+                // Horizontal erosion pass
+                for (let y = 0; y < h; y++) {
+                    for (let x = 0; x < w; x++) {
+                        let minVal = 255;
+                        for (let dx = -erosionRadius; dx <= erosionRadius; dx++) {
+                            const nx = x + dx;
+                            if (nx >= 0 && nx < w) {
+                                const val = binaryMask[y * w + nx];
+                                if (val < minVal) minVal = val;
                             }
-                            tempAlpha[y * w + x] = sum / count;
                         }
+                        tempErode[y * w + x] = minVal;
                     }
-                    
-                    for (let y = 0; y < h; y++) {
-                        for (let x = 0; x < w; x++) {
-                            let sum = 0;
-                            let count = 0;
-                            for (let dy = -radius; dy <= radius; dy++) {
-                                const ny = y + dy;
-                                if (ny >= 0 && ny < h) {
-                                    sum += tempAlpha[ny * w + x];
-                                    count++;
-                                }
+                }
+                
+                // Vertical erosion pass
+                for (let y = 0; y < h; y++) {
+                    for (let x = 0; x < w; x++) {
+                        let minVal = 255;
+                        for (let dy = -erosionRadius; dy <= erosionRadius; dy++) {
+                            const ny = y + dy;
+                            if (ny >= 0 && ny < h) {
+                                const val = tempErode[ny * w + x];
+                                if (val < minVal) minVal = val;
                             }
-                            oData[(y * w + x) * 4 + 3] = sum / count;
                         }
+                        erodedMask[y * w + x] = minVal;
                     }
+                }
+                
+                // 4. Smooth/blur the eroded mask using the softness slider (default/minimum 2px for anti-aliasing)
+                const finalMask = new Uint8Array(w * h);
+                const radius = Math.max(2, softness); // Use at least 2px to ensure anti-aliased, smooth edges
+                
+                const tempAlpha = new Uint8Array(w * h);
+                // Horizontal blur pass
+                for (let y = 0; y < h; y++) {
+                    for (let x = 0; x < w; x++) {
+                        let sum = 0;
+                        let count = 0;
+                        for (let dx = -radius; dx <= radius; dx++) {
+                            const nx = x + dx;
+                            if (nx >= 0 && nx < w) {
+                                sum += erodedMask[y * w + nx];
+                                count++;
+                            }
+                        }
+                        tempAlpha[y * w + x] = sum / count;
+                    }
+                }
+                // Vertical blur pass
+                for (let y = 0; y < h; y++) {
+                    for (let x = 0; x < w; x++) {
+                        let sum = 0;
+                        let count = 0;
+                        for (let dy = -radius; dy <= radius; dy++) {
+                            const ny = y + dy;
+                            if (ny >= 0 && ny < h) {
+                                sum += tempAlpha[ny * w + x];
+                                count++;
+                            }
+                        }
+                        finalMask[y * w + x] = sum / count;
+                    }
+                }
+                
+                // 5. Apply the final smoothed and eroded mask to the output image's alpha channel
+                for (let i = 0; i < w * h; i++) {
+                    oData[i * 4 + 3] = Math.round((oData[i * 4 + 3] * finalMask[i]) / 255);
                 }
                 
                 outCtx.putImageData(outImageData, 0, 0);
@@ -937,7 +1001,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
             });
             
             const imgElement = new Image();
-            imgElement.src = originalImage.src;
+            imgElement.src = img.src;
             await new Promise((resolve) => {
                 imgElement.onload = resolve;
             });
@@ -1770,7 +1834,12 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                                     {/* Mode Selector */}
                                     <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px', padding: '4px', marginBottom: '20px', border: '1px solid var(--panel-border)' }}>
                                         <button 
-                                            onClick={() => setBgRemovalMode('ai')} 
+                                            onClick={() => {
+                                                setBgRemovalMode('ai');
+                                                if (imageLoaded) {
+                                                    applyAiAutoCutout();
+                                                }
+                                            }} 
                                             style={{ 
                                                 flex: 1, 
                                                 padding: '8px', 
@@ -1780,14 +1849,19 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                                                 fontWeight: '700', 
                                                 cursor: 'pointer', 
                                                 background: bgRemovalMode === 'ai' ? 'var(--btn-primary-bg, #3b82f6)' : 'transparent', 
-                                                color: '#fff', 
+                                                color: bgRemovalMode === 'ai' ? '#fff' : 'var(--text-muted)', 
                                                 transition: 'all 0.2s' 
                                             }}
                                         >
                                             ✨ AI Auto
                                         </button>
                                         <button 
-                                            onClick={() => setBgRemovalMode('chroma')} 
+                                            onClick={() => {
+                                                setBgRemovalMode('chroma');
+                                                if (imageLoaded) {
+                                                    applyTransparency();
+                                                }
+                                            }} 
                                             style={{ 
                                                 flex: 1, 
                                                 padding: '8px', 
