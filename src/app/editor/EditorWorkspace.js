@@ -475,18 +475,122 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
         setPanY(0);
     };
 
+    const autoRemoveBackground = (img, imgData) => {
+        setProcessing({ visible: true, progress: 20, title: 'AI Auto-Detecting Background...' });
+        setTimeout(() => {
+            const data = imgData.data;
+            const w = imgData.width;
+            const h = imgData.height;
+            
+            const colorCounts = {};
+            const sampleStep = Math.max(1, Math.floor(Math.min(w, h) / 100));
+
+            const samplePixel = (x, y) => {
+                const idx = (y * w + x) * 4;
+                const r = data[idx];
+                const g = data[idx + 1];
+                const b = data[idx + 2];
+                const a = data[idx + 3];
+                if (a < 200) return;
+                const qr = Math.round(r / 10) * 10;
+                const qg = Math.round(g / 10) * 10;
+                const qb = Math.round(b / 10) * 10;
+                const key = `${qr},${qg},${qb}`;
+                if (!colorCounts[key]) {
+                    colorCounts[key] = { count: 0, r: qr, g: qg, b: qb };
+                }
+                colorCounts[key].count++;
+            };
+
+            for (let x = 0; x < w; x += sampleStep) {
+                samplePixel(x, 0);
+                samplePixel(x, h - 1);
+            }
+            for (let y = 0; y < h; y += sampleStep) {
+                samplePixel(0, y);
+                samplePixel(w - 1, y);
+            }
+
+            const sorted = Object.values(colorCounts).sort((a, b) => b.count - a.count);
+            let detectedColor = { r: 255, g: 255, b: 255 };
+            if (sorted.length > 0) {
+                detectedColor = { r: sorted[0].r, g: sorted[0].g, b: sorted[0].b };
+            }
+            setTargetColor(detectedColor);
+
+            setProcessing({ visible: true, progress: 60, title: 'AI Removing background...' });
+
+            const canvas = mainCanvasRef.current;
+            if (!canvas) {
+                setProcessing({ visible: false });
+                return;
+            }
+            const baseCtx = canvas.getContext('2d');
+            canvas.width = w;
+            canvas.height = h;
+            baseCtx.drawImage(img, 0, 0);
+            
+            const freshImgData = baseCtx.getImageData(0, 0, w, h);
+            const freshData = freshImgData.data;
+
+            const toleranceSq = 55 * 55;
+            for (let i = 0; i < freshData.length; i += 4) {
+                const distSq = colorDistanceSq(
+                    freshData[i], freshData[i + 1], freshData[i + 2],
+                    detectedColor.r, detectedColor.g, detectedColor.b
+                );
+                if (distSq <= toleranceSq) {
+                    freshData[i + 3] = 0;
+                }
+            }
+
+            const softnessVal = 2;
+            const alphaMap = new Uint8Array(w * h);
+            for (let i = 0; i < w * h; i++) {
+                alphaMap[i] = freshData[i * 4 + 3];
+            }
+            for (let y = softnessVal; y < h - softnessVal; y++) {
+                for (let x = softnessVal; x < w - softnessVal; x++) {
+                    const idx = y * w + x;
+                    if (alphaMap[idx] === 255) {
+                        let transparentNeighbors = 0;
+                        let total = 0;
+                        for (let dy = -softnessVal; dy <= softnessVal; dy++) {
+                            for (let dx = -softnessVal; dx <= softnessVal; dx++) {
+                                const nidx = (y + dy) * w + (x + dx);
+                                if (alphaMap[nidx] === 0) {
+                                    transparentNeighbors++;
+                                }
+                                total++;
+                            }
+                        }
+                        if (transparentNeighbors > 0) {
+                            const opacityRatio = 1 - (transparentNeighbors / total);
+                            freshData[idx * 4 + 3] = Math.round(opacityRatio * 255);
+                        }
+                    }
+                }
+            }
+
+            setResultImageData(freshImgData);
+            setCurrentView('result');
+            setProcessing({ visible: false, progress: 0 });
+            showToast('AI Background removed automatically!', 'success');
+        }, 600);
+    };
+
     const loadImageFromDataURL = (dataUrl) => {
         const img = new Image();
         img.onload = () => {
             setOriginalImage(img);
-            const canvas = mainCanvasRef.current;
-            if (!canvas) return;
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0);
             
-            const imgData = ctx.getImageData(0, 0, img.width, img.height);
+            const offscreenCanvas = document.createElement('canvas');
+            offscreenCanvas.width = img.width;
+            offscreenCanvas.height = img.height;
+            const offscreenCtx = offscreenCanvas.getContext('2d');
+            offscreenCtx.drawImage(img, 0, 0);
+            
+            const imgData = offscreenCtx.getImageData(0, 0, img.width, img.height);
             setOriginalImageData(imgData);
             setResultImageData(null);
             setCurrentView('original');
@@ -497,9 +601,19 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
             setImageLoaded(true);
 
             setTimeout(() => {
+                const canvas = mainCanvasRef.current;
+                if (canvas) {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                }
                 fitCanvasToView();
-                autoDetectColor(imgData);
-            }, 50);
+                
+                if (activeTool === 'bg-remover' || activeTool === 'change-bg') {
+                    autoRemoveBackground(img, imgData);
+                } else {
+                    autoDetectColor(imgData);
+                }
+            }, 100);
         };
         img.src = dataUrl;
     };
