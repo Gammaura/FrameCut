@@ -14,9 +14,14 @@
     const mainCanvas = document.getElementById('main-canvas');
     const ctx = mainCanvas.getContext('2d', { willReadFrequently: true });
     const canvasWrapper = document.getElementById('canvas-wrapper');
+    const canvasContainer = document.getElementById('canvas-container');
+    const canvasCrosshair = document.getElementById('canvas-crosshair');
+    const magnifierLoupe = document.getElementById('magnifier-loupe');
+    const loupeCanvas = document.getElementById('loupe-canvas');
 
     const colorSwatch = document.getElementById('color-swatch');
     const colorHex = document.getElementById('color-hex');
+    const colorInput = document.getElementById('color-input');
     const toleranceSlider = document.getElementById('tolerance-slider');
     const toleranceValue = document.getElementById('tolerance-value');
     const softnessSlider = document.getElementById('softness-slider');
@@ -45,8 +50,14 @@
     let resultImageData = null;
     let currentView = 'original'; // 'original' | 'result'
     let zoom = 1;
+    let panX = 0;
+    let panY = 0;
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
     let targetColor = { r: 204, g: 0, b: 0 }; // default red
     let hasResult = false;
+    let lastClickedPixel = null;
 
     // ===== UPLOAD HANDLING =====
     uploadZone.addEventListener('click', () => fileInput.click());
@@ -85,6 +96,11 @@
         hasResult = false;
         fileInput.value = '';
         btnDownload.disabled = true;
+        panX = 0;
+        panY = 0;
+        lastClickedPixel = null;
+        canvasCrosshair.style.display = 'none';
+        magnifierLoupe.style.display = 'none';
     });
 
     function loadImage(file) {
@@ -115,6 +131,12 @@
         tabOriginal.classList.add('active');
         tabResult.classList.remove('active');
         btnDownload.disabled = true;
+        
+        // Hide overlays
+        canvasCrosshair.style.display = 'none';
+        magnifierLoupe.style.display = 'none';
+        lastClickedPixel = null;
+        
         // Delay fit so the editor section has rendered and wrapper has dimensions
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
@@ -129,27 +151,202 @@
         const scaleY = (wrapperRect.height - 40) / mainCanvas.height;
         zoom = Math.min(scaleX, scaleY);
         if (zoom <= 0 || !isFinite(zoom)) zoom = 0.5;
+        panX = 0;
+        panY = 0;
         applyZoom();
     }
 
     function applyZoom() {
-        mainCanvas.style.transform = `scale(${zoom})`;
-        mainCanvas.style.transformOrigin = 'center center';
+        canvasContainer.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+        canvasContainer.style.transformOrigin = 'center center';
         zoomInfo.textContent = `${Math.round(zoom * 100)}%`;
     }
 
     // ===== ZOOM CONTROLS =====
     btnZoomIn.addEventListener('click', () => {
-        zoom = Math.min(zoom * 1.25, 5);
+        zoom = Math.min(zoom * 1.25, 8);
         applyZoom();
     });
 
     btnZoomOut.addEventListener('click', () => {
-        zoom = Math.max(zoom / 1.25, 0.1);
+        zoom = Math.max(zoom / 1.25, 0.05);
         applyZoom();
     });
 
     btnZoomFit.addEventListener('click', fitCanvasToView);
+
+    // ===== ZOOM WITH MOUSE WHEEL =====
+    canvasWrapper.addEventListener('wheel', (e) => {
+        if (!originalImageData) return;
+        e.preventDefault();
+        
+        const zoomFactor = 1.1;
+        const oldZoom = zoom;
+        if (e.deltaY < 0) {
+            zoom = Math.min(zoom * zoomFactor, 8);
+        } else {
+            zoom = Math.max(zoom / zoomFactor, 0.05);
+        }
+        
+        // Zoom relative to cursor position
+        const rect = canvasContainer.getBoundingClientRect();
+        const wrapperRect = canvasWrapper.getBoundingClientRect();
+        
+        const cursorX = e.clientX - wrapperRect.left - wrapperRect.width / 2;
+        const cursorY = e.clientY - wrapperRect.top - wrapperRect.height / 2;
+        
+        panX = cursorX - (cursorX - panX) * (zoom / oldZoom);
+        panY = cursorY - (cursorY - panY) * (zoom / oldZoom);
+
+        applyZoom();
+    }, { passive: false });
+
+    // ===== CANVAS PANNING AND INTERACTION =====
+    canvasWrapper.addEventListener('mousedown', (e) => {
+        if (!originalImageData) return;
+        
+        isDragging = true;
+        startX = e.clientX - panX;
+        startY = e.clientY - panY;
+        
+        canvasWrapper.dataset.downX = e.clientX;
+        canvasWrapper.dataset.downY = e.clientY;
+        canvasWrapper.style.cursor = 'grabbing';
+    });
+
+    canvasWrapper.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+            panX = e.clientX - startX;
+            panY = e.clientY - startY;
+            applyZoom();
+            magnifierLoupe.style.display = 'none';
+        } else {
+            updateLoupe(e);
+        }
+    });
+
+    window.addEventListener('mouseup', (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        canvasWrapper.style.cursor = 'crosshair';
+        
+        const downX = parseFloat(canvasWrapper.dataset.downX || 0);
+        const downY = parseFloat(canvasWrapper.dataset.downY || 0);
+        const dx = e.clientX - downX;
+        const dy = e.clientY - downY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist < 5) {
+            handleCanvasSelection(e);
+        }
+    });
+
+    canvasWrapper.addEventListener('mouseleave', () => {
+        magnifierLoupe.style.display = 'none';
+    });
+
+    function handleCanvasSelection(e) {
+        const rect = mainCanvas.getBoundingClientRect();
+        const scaleX = mainCanvas.width / rect.width;
+        const scaleY = mainCanvas.height / rect.height;
+        const x = Math.floor((e.clientX - rect.left) * scaleX);
+        const y = Math.floor((e.clientY - rect.top) * scaleY);
+
+        if (x < 0 || x >= mainCanvas.width || y < 0 || y >= mainCanvas.height) return;
+
+        const data = originalImageData.data;
+        const idx = (y * mainCanvas.width + x) * 4;
+        targetColor = {
+            r: data[idx],
+            g: data[idx + 1],
+            b: data[idx + 2]
+        };
+
+        lastClickedPixel = { x, y };
+        updateColorDisplay();
+        
+        // Show crosshair at exact canvas pixel
+        canvasCrosshair.style.display = 'block';
+        canvasCrosshair.style.left = `${x}px`;
+        canvasCrosshair.style.top = `${y}px`;
+
+        showToast(`Color selected: ${rgbToHex(targetColor.r, targetColor.g, targetColor.b)}`, 'info');
+    }
+
+    function updateLoupe(e) {
+        if (!originalImageData) {
+            magnifierLoupe.style.display = 'none';
+            return;
+        }
+
+        const rect = mainCanvas.getBoundingClientRect();
+        const scaleX = mainCanvas.width / rect.width;
+        const scaleY = mainCanvas.height / rect.height;
+        const x = Math.floor((e.clientX - rect.left) * scaleX);
+        const y = Math.floor((e.clientY - rect.top) * scaleY);
+
+        if (x < 0 || x >= mainCanvas.width || y < 0 || y >= mainCanvas.height) {
+            magnifierLoupe.style.display = 'none';
+            return;
+        }
+
+        const wrapperRect = canvasWrapper.getBoundingClientRect();
+        const loupeX = e.clientX - wrapperRect.left;
+        const loupeY = e.clientY - wrapperRect.top;
+
+        magnifierLoupe.style.display = 'block';
+        magnifierLoupe.style.left = `${loupeX}px`;
+        magnifierLoupe.style.top = `${loupeY}px`;
+
+        const loupeCtx = loupeCanvas.getContext('2d');
+        loupeCtx.imageSmoothingEnabled = false;
+        loupeCtx.clearRect(0, 0, 120, 120);
+
+        // Draw Checkerboard
+        drawLoupeCheckerboard(loupeCtx, 120, 120, 8);
+
+        // Draw zoomed section
+        const sSize = 13;
+        const dSize = 120;
+        loupeCtx.drawImage(
+            mainCanvas,
+            x - sSize / 2, y - sSize / 2, sSize, sSize,
+            0, 0, dSize, dSize
+        );
+    }
+
+    function drawLoupeCheckerboard(ctx, w, h, size) {
+        ctx.fillStyle = '#12121a';
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = '#1e1e2f';
+        for (let y = 0; y < h; y += size * 2) {
+            for (let x = 0; x < w; x += size * 2) {
+                ctx.fillRect(x, y, size, size);
+                ctx.fillRect(x + size, y + size, size, size);
+            }
+        }
+    }
+
+    // ===== SWATCH AND COLOR PICKER INPUT =====
+    colorSwatch.addEventListener('click', () => colorInput.click());
+    colorInput.addEventListener('input', (e) => {
+        const hex = e.target.value;
+        colorHex.textContent = hex.toUpperCase();
+        colorSwatch.style.background = hex;
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        targetColor = { r, g, b };
+        lastClickedPixel = null;
+        canvasCrosshair.style.display = 'none';
+    });
+
+    function updateColorDisplay() {
+        const hex = rgbToHex(targetColor.r, targetColor.g, targetColor.b);
+        colorSwatch.style.background = hex;
+        colorHex.textContent = hex.toUpperCase();
+        colorInput.value = hex;
+    }
 
     // ===== TAB SWITCHING =====
     tabOriginal.addEventListener('click', () => {
@@ -177,36 +374,6 @@
             ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
             ctx.putImageData(resultImageData, 0, 0);
         }
-    }
-
-    // ===== COLOR PICKING =====
-    mainCanvas.addEventListener('click', (e) => {
-        if (!originalImageData) return;
-
-        const rect = mainCanvas.getBoundingClientRect();
-        const scaleX = mainCanvas.width / rect.width;
-        const scaleY = mainCanvas.height / rect.height;
-        const x = Math.floor((e.clientX - rect.left) * scaleX);
-        const y = Math.floor((e.clientY - rect.top) * scaleY);
-
-        if (x < 0 || x >= mainCanvas.width || y < 0 || y >= mainCanvas.height) return;
-
-        const data = originalImageData.data;
-        const idx = (y * mainCanvas.width + x) * 4;
-        targetColor = {
-            r: data[idx],
-            g: data[idx + 1],
-            b: data[idx + 2]
-        };
-
-        updateColorDisplay();
-        showToast(`Color selected: ${rgbToHex(targetColor.r, targetColor.g, targetColor.b)}`, 'info');
-    });
-
-    function updateColorDisplay() {
-        const hex = rgbToHex(targetColor.r, targetColor.g, targetColor.b);
-        colorSwatch.style.background = hex;
-        colorHex.textContent = hex;
     }
 
     // ===== AUTO DETECT =====
@@ -382,7 +549,16 @@
                 const visited = new Uint8Array(w * h);
                 const mask = new Uint8Array(w * h);
 
-                const seeds = findSeedPoints(srcData.data, w, h, targetColor, tolerance);
+                // Use the user's clicked point as primary seed if available
+                let seeds = [];
+                if (lastClickedPixel) {
+                    seeds.push(lastClickedPixel);
+                }
+
+                // Scan for other solid regions matching target color
+                const gridSeeds = findSeedPoints(srcData.data, w, h, targetColor, tolerance);
+                seeds = seeds.concat(gridSeeds);
+                
                 updateProgress(15);
 
                 for (const seed of seeds) {
@@ -513,9 +689,6 @@
     }
 
     function dilateMask(mask, w, h, radius, data, color, tolerance) {
-        // Expand mask by `radius` pixels, but ONLY into pixels
-        // that are clearly anti-aliased (very close to target color).
-        // Uses tight tolerance to avoid eating into the frame.
         const dilated = new Uint8Array(mask);
         const tightTolerance = tolerance * 1.3;
 
@@ -526,7 +699,6 @@
                     const pos = y * w + x;
                     if (prevMask[pos]) continue;
 
-                    // Must be adjacent to a masked pixel
                     const adjCount =
                         (prevMask[pos - 1] ? 1 : 0) + (prevMask[pos + 1] ? 1 : 0) +
                         (prevMask[pos - w] ? 1 : 0) + (prevMask[pos + w] ? 1 : 0);
@@ -539,7 +711,6 @@
                         color.r, color.g, color.b
                     );
 
-                    // Only dilate into pixels close to target color
                     if (dist <= tightTolerance) {
                         dilated[pos] = 2;
                     }
@@ -550,20 +721,77 @@
         return dilated;
     }
 
+    function boxBlurMask(mask, w, h, R) {
+        const temp = new Float32Array(w * h);
+        const blurred = new Float32Array(w * h);
+
+        // Horizontal pass
+        for (let y = 0; y < h; y++) {
+            let sum = 0;
+            for (let x = -R; x <= R; x++) {
+                const val = mask[y * w + Math.min(Math.max(x, 0), w - 1)];
+                sum += val;
+            }
+            for (let x = 0; x < w; x++) {
+                temp[y * w + x] = sum / (2 * R + 1);
+                
+                const leaveX = x - R;
+                const enterX = x + R + 1;
+                const leaveVal = mask[y * w + Math.min(Math.max(leaveX, 0), w - 1)];
+                const enterVal = mask[y * w + Math.min(Math.max(enterX, 0), w - 1)];
+                sum += enterVal - leaveVal;
+            }
+        }
+
+        // Vertical pass
+        for (let x = 0; x < w; x++) {
+            let sum = 0;
+            for (let y = -R; y <= R; y++) {
+                const val = temp[Math.min(Math.max(y, 0), h - 1) * w + x];
+                sum += val;
+            }
+            for (let y = 0; y < h; y++) {
+                blurred[y * w + x] = sum / (2 * R + 1);
+                
+                const leaveY = y - R;
+                const enterY = y + R + 1;
+                const leaveVal = temp[Math.min(Math.max(leaveY, 0), h - 1) * w + x];
+                const enterVal = temp[Math.min(Math.max(enterY, 0), h - 1) * w + x];
+                sum += enterVal - leaveVal;
+            }
+        }
+
+        return blurred;
+    }
+
     function applyCleanMask(pixels, dilatedMask, originalMask, w, h, softness, srcData, color, tolerance) {
         const totalPixels = w * h;
 
-        // Pass 1: Core mask = fully transparent, dilated edge = transparent
-        for (let i = 0; i < totalPixels; i++) {
-            const px = i * 4;
-            if (dilatedMask[i] >= 1) {
-                pixels[px + 3] = 0;
+        if (softness > 0) {
+            const binaryMask = new Uint8Array(totalPixels);
+            for (let i = 0; i < totalPixels; i++) {
+                if (dilatedMask[i] >= 1) {
+                    binaryMask[i] = 1;
+                }
+            }
+
+            const blurredMask = boxBlurMask(binaryMask, w, h, softness);
+
+            for (let i = 0; i < totalPixels; i++) {
+                const px = i * 4;
+                const originalAlpha = srcData.data[px + 3];
+                pixels[px + 3] = Math.round(originalAlpha * (1.0 - blurredMask[i]));
+            }
+        } else {
+            for (let i = 0; i < totalPixels; i++) {
+                const px = i * 4;
+                if (dilatedMask[i] >= 1) {
+                    pixels[px + 3] = 0;
+                }
             }
         }
 
         // Pass 2: Conservative cleanup — only 2 passes max
-        // Remove pixels that are VERY similar to target AND mostly
-        // surrounded by transparent pixels (these are leftover anti-alias)
         for (let pass = 0; pass < 2; pass++) {
             let changed = false;
             for (let y = 1; y < h - 1; y++) {
@@ -573,14 +801,12 @@
 
                     if (pixels[px + 3] === 0) continue;
 
-                    // Count transparent neighbors (4-connected only for precision)
                     let transN = 0;
                     if (pixels[(pos - 1) * 4 + 3] === 0) transN++;
                     if (pixels[(pos + 1) * 4 + 3] === 0) transN++;
                     if (pixels[(pos - w) * 4 + 3] === 0) transN++;
                     if (pixels[(pos + w) * 4 + 3] === 0) transN++;
 
-                    // Need at least 3 of 4 direct neighbors transparent
                     if (transN < 3) continue;
 
                     const dist = colorDistance(
@@ -588,7 +814,6 @@
                         color.r, color.g, color.b
                     );
 
-                    // Only remove if very close to target color
                     if (dist <= tolerance * 1.2) {
                         pixels[px + 3] = 0;
                         changed = true;
@@ -609,6 +834,9 @@
         tabResult.classList.remove('active');
         btnDownload.disabled = true;
         ctx.putImageData(originalImageData, 0, 0);
+        lastClickedPixel = null;
+        canvasCrosshair.style.display = 'none';
+        magnifierLoupe.style.display = 'none';
         showToast('Reset to original', 'info');
     });
 
@@ -630,7 +858,6 @@
 
     // ===== UTILITY FUNCTIONS =====
     function colorDistance(r1, g1, b1, r2, g2, b2) {
-        // Standard Euclidean RGB distance
         const dr = r1 - r2;
         const dg = g1 - g2;
         const db = b1 - b2;
@@ -657,7 +884,6 @@
 
     // ===== TOAST =====
     function showToast(message, type = 'info') {
-        // Remove existing toasts
         document.querySelectorAll('.toast').forEach(t => t.remove());
 
         const toast = document.createElement('div');

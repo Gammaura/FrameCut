@@ -591,24 +591,60 @@ body {
     opacity: 0.5;
 }
 
-#main-canvas {
+.canvas-container {
     position: relative;
     z-index: 1;
+    display: inline-block;
+    cursor: crosshair;
+}
+
+#main-canvas {
     display: block;
     image-rendering: auto;
-    transition: transform 0.1s ease;
 }
 
 .canvas-crosshair {
     position: absolute;
     width: 24px;
     height: 24px;
-    border: 2px solid white;
+    border: 2px solid #ffffff;
     border-radius: 50%;
     pointer-events: none;
     z-index: 10;
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
     transform: translate(-50%, -50%);
+}
+
+.magnifier-loupe {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 3px solid var(--text-primary);
+    box-shadow: var(--shadow-lg), 0 0 15px rgba(0, 0, 0, 0.6);
+    pointer-events: none;
+    z-index: 100;
+    overflow: hidden;
+    transform: translate(-50%, -130%);
+    background: #0a0a0f;
+}
+
+.magnifier-loupe canvas {
+    display: block;
+}
+
+.loupe-crosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    border: 1.5px solid #ff3b30;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 101;
+    box-shadow: 0 0 0 1px #ffffff;
 }
 
 .zoom-info {

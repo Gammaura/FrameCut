@@ -74,7 +74,8 @@
                         <label class="control-label">Target Color</label>
                         <p class="control-hint">Click on the image to pick a color, or use auto-detect</p>
                         <div class="color-display">
-                            <div class="color-swatch" id="color-swatch"></div>
+                            <input type="color" id="color-input" style="display: none;">
+                            <div class="color-swatch" id="color-swatch" style="cursor: pointer;" title="Pick custom color"></div>
                             <span class="color-hex" id="color-hex">#000000</span>
                         </div>
                         <button class="btn btn-outline btn-sm" id="btn-auto-detect">
@@ -142,8 +143,14 @@
                     </div>
                     <div class="canvas-wrapper" id="canvas-wrapper">
                         <div class="checkerboard-bg"></div>
-                        <canvas id="main-canvas"></canvas>
-                        <div class="canvas-crosshair" id="canvas-crosshair" style="display:none"></div>
+                        <div class="canvas-container" id="canvas-container">
+                            <canvas id="main-canvas"></canvas>
+                            <div class="canvas-crosshair" id="canvas-crosshair" style="display:none"></div>
+                        </div>
+                        <div class="magnifier-loupe" id="magnifier-loupe" style="display:none">
+                            <canvas id="loupe-canvas" width="120" height="120"></canvas>
+                            <div class="loupe-crosshair"></div>
+                        </div>
                         <div class="zoom-info" id="zoom-info">100%</div>
                     </div>
                     <div class="canvas-toolbar">
