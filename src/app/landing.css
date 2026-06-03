@@ -1276,3 +1276,7 @@
     color: var(--text-muted);
 }
 
+.dropdown-item-hover:hover {
+    background: rgba(9, 9, 11, 0.05) !important;
+}
+

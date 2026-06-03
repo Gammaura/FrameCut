@@ -8,6 +8,7 @@ import '../landing.css';
 export default function ApiDocs() {
     const { user, logout, setShowAuthModal, setShowUpgradeModal, setAuthMode, generateNewApiKey } = useAuth();
     const [selectedTab, setSelectedTab] = useState('curl'); // 'curl' | 'js' | 'python'
+    const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
     const codeSamples = {
         curl: `curl -X POST https://api.framecut.ai/v1/remove-background \\
@@ -90,18 +91,98 @@ if response.status_code == 200:
                         <Link href="/api" className="nav-link active">API</Link>
                     </nav>
                     {user ? (
-                        <div className="nav-auth-group" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                            <span className="user-badge" style={{ fontSize: '13px', background: 'rgba(9, 9, 11, 0.05)', border: '1px solid var(--panel-border)', padding: '6px 12px', borderRadius: '999px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: user.tier === 'free' ? '#9595b0' : user.tier === 'pro' ? '#a78bfa' : '#06b6d4' }}></span>
-                                {user.email.split('@')[0]} ({user.tier.toUpperCase()})
-                            </span>
-                            <button className="nav-link" onClick={logout} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>Log Out</button>
-                            <Link href="/editor" className="btn btn-glass">Launch App</Link>
+                        <div className="nav-auth-group" style={{ display: 'flex', alignItems: 'center', gap: '16px', position: 'relative' }}>
+                            <Link href="/editor" className="btn btn-glass" style={{ fontSize: '13px', padding: '8px 18px', borderRadius: '999px', fontWeight: '600' }}>Workspace</Link>
+                            <div className="profile-dropdown-container" style={{ position: 'relative' }}>
+                                <button 
+                                    onClick={() => setShowProfileDropdown(!showProfileDropdown)} 
+                                    style={{ 
+                                        background: 'none', 
+                                        border: 'none', 
+                                        cursor: 'pointer', 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        padding: 0 
+                                    }}
+                                >
+                                    {user.picture && user.picture.startsWith('http') ? (
+                                        <img 
+                                            src={user.picture} 
+                                            alt={user.name || 'User'} 
+                                            onError={(e) => {
+                                                e.currentTarget.onerror = null;
+                                                e.currentTarget.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23a78bfa'><circle cx='12' cy='8' r='4'/><path d='M2 20c0-4.4 3.6-8 8-8h4c4.4 0 8 3.6 8 8v2H2v-2z'/></svg>";
+                                            }}
+                                            style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--panel-border)' }} 
+                                        />
+                                    ) : (
+                                        <div 
+                                            style={{ 
+                                                width: '36px', 
+                                                height: '36px', 
+                                                borderRadius: '50%', 
+                                                backgroundColor: 'var(--accent-purple)', 
+                                                color: '#fff', 
+                                                display: 'flex', 
+                                                alignItems: 'center', 
+                                                justifyContent: 'center', 
+                                                fontWeight: '700',
+                                                fontSize: '14px',
+                                                border: '1px solid var(--panel-border)'
+                                            }}
+                                        >
+                                            {(user.name || user.email || 'U').charAt(0).toUpperCase()}
+                                        </div>
+                                    )}
+                                </button>
+                                {showProfileDropdown && (
+                                    <div 
+                                        className="profile-dropdown-menu" 
+                                        style={{ 
+                                            position: 'absolute', 
+                                            right: 0, 
+                                            top: '44px', 
+                                            width: '220px', 
+                                            background: 'var(--bg-color)', 
+                                            border: '1px solid var(--panel-border)', 
+                                            borderRadius: '12px', 
+                                            boxShadow: '0 10px 25px rgba(0,0,0,0.08)', 
+                                            padding: '12px',
+                                            zIndex: 1000,
+                                            textAlign: 'left'
+                                        }}
+                                    >
+                                        <div style={{ padding: '4px 8px 8px 8px', borderBottom: '1px solid var(--panel-border)', marginBottom: '8px' }}>
+                                            <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-color)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name || user.email.split('@')[0]}</div>
+                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</div>
+                                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '6px', fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', background: 'var(--glow-violet)', color: 'var(--accent-purple)', padding: '2px 8px', borderRadius: '4px' }}>
+                                                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--accent-purple)' }}></span>
+                                                {user.tier} Plan
+                                            </div>
+                                        </div>
+                                        <Link href="/editor" style={{ display: 'block', padding: '8px', fontSize: '13px', color: 'var(--text-color)', textDecoration: 'none', borderRadius: '6px', transition: 'background 0.2s' }} className="dropdown-item-hover">
+                                            Go to Workspace
+                                        </Link>
+                                        <Link href="/pricing" style={{ display: 'block', padding: '8px', fontSize: '13px', color: 'var(--text-color)', textDecoration: 'none', borderRadius: '6px', transition: 'background 0.2s' }} className="dropdown-item-hover">
+                                            Upgrade & Pricing
+                                        </Link>
+                                        <div style={{ borderTop: '1px solid var(--panel-border)', marginTop: '8px', paddingTop: '8px' }}>
+                                            <button 
+                                                onClick={() => { logout(); setShowProfileDropdown(false); }} 
+                                                style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: '8px', fontSize: '13px', color: 'var(--accent-pink)', cursor: 'pointer', borderRadius: '6px' }}
+                                                className="dropdown-item-hover"
+                                            >
+                                                Log Out
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     ) : (
                         <div className="nav-auth-group" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                            <button className="nav-link" onClick={() => { setAuthMode('login'); setShowAuthModal(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>Log In</button>
-                            <Link href="/editor" className="btn btn-glass">Launch App</Link>
+                            <button className="nav-link" onClick={() => { setAuthMode('login'); setShowAuthModal(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>Sign In</button>
+                            <button className="btn btn-primary" onClick={() => { setAuthMode('signup'); setShowAuthModal(true); }} style={{ cursor: 'pointer', padding: '8px 20px', borderRadius: '999px', fontWeight: '600', fontSize: '13px' }}>Sign Up</button>
                         </div>
                     )}
                 </div>
