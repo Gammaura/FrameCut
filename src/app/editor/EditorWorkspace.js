@@ -893,15 +893,20 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                 const outImageData = outCtx.getImageData(0, 0, w, h);
                 const oData = outImageData.data;
                 
-                // Determine which channel to use (Red or Alpha)
-                // If there is any transparent pixel in the mask, use Alpha. Otherwise use Red.
-                let useAlpha = false;
-                for (let i = 3; i < maskData.length; i += 4) {
-                    if (maskData[i] < 250) {
-                        useAlpha = true;
-                        break;
-                    }
+                // Determine which channel to use (Red or Alpha) based on channel variation
+                let minRed = 255, maxRed = 0;
+                let minAlpha = 255, maxAlpha = 0;
+                for (let i = 0; i < maskData.length; i += 4) {
+                    const r = maskData[i];
+                    const a = maskData[i + 3];
+                    if (r < minRed) minRed = r;
+                    if (r > maxRed) maxRed = r;
+                    if (a < minAlpha) minAlpha = a;
+                    if (a > maxAlpha) maxAlpha = a;
                 }
+                const redVaries = (maxRed - minRed) > 10;
+                const alphaVaries = (maxAlpha - minAlpha) > 10;
+                const useAlpha = alphaVaries && !redVaries;
                 
                 // 1. Extract raw mask probabilities (0 to 255)
                 const rawMask = new Uint8Array(w * h);
