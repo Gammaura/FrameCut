@@ -1319,19 +1319,19 @@ export default function Editor() {
                 <div className="editor-auth-status" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     {user ? (
                         <>
-                            <div className="exports-limit-badge" style={{ fontSize: '13px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--panel-border)', padding: '6px 14px', borderRadius: '999px', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-muted)' }}>
+                            <div className="exports-limit-badge" style={{ fontSize: '13px', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', padding: '6px 14px', borderRadius: '999px', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-muted)' }}>
                                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: user.tier === 'free' ? '#9595b0' : user.tier === 'pro' ? '#a78bfa' : '#06b6d4' }}></span>
-                                <span>Tier: <strong style={{ color: '#fff' }}>{user.tier.toUpperCase()}</strong></span>
+                                <span>Tier: <strong style={{ color: 'var(--text-primary)' }}>{user.tier.toUpperCase()}</strong></span>
                                 {user.tier === 'free' && (
-                                    <span style={{ borderLeft: '1px solid var(--panel-border)', paddingLeft: '10px', color: 'var(--text-muted)' }}>
-                                        Exports: <strong style={{ color: '#a78bfa' }}>{usageCount}/5</strong>
+                                    <span style={{ borderLeft: '1px solid var(--border-subtle)', paddingLeft: '10px', color: 'var(--text-muted)' }}>
+                                        Exports: <strong style={{ color: 'var(--accent-purple)' }}>{usageCount}/5</strong>
                                     </span>
                                 )}
                             </div>
                             {user.tier === 'free' && (
                                 <button 
                                     onClick={() => setShowUpgradeModal(true)}
-                                    style={{ padding: '6px 14px', background: 'var(--primary-grad)', border: 'none', borderRadius: '999px', fontSize: '12px', fontWeight: '700', color: '#000', cursor: 'pointer' }}
+                                    style={{ padding: '6px 14px', background: 'var(--gradient-primary)', border: 'none', borderRadius: '999px', fontSize: '12px', fontWeight: '700', color: '#fff', cursor: 'pointer' }}
                                 >
                                     Upgrade Pro
                                 </button>
@@ -1342,12 +1342,12 @@ export default function Editor() {
                         </>
                     ) : (
                         <>
-                            <div className="exports-limit-badge" style={{ fontSize: '13px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--panel-border)', padding: '6px 14px', borderRadius: '999px', color: 'var(--text-muted)' }}>
-                                Guest Exports: <strong style={{ color: '#a78bfa' }}>{usageCount}/5</strong>
+                            <div className="exports-limit-badge" style={{ fontSize: '13px', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', padding: '6px 14px', borderRadius: '999px', color: 'var(--text-muted)' }}>
+                                Guest Exports: <strong style={{ color: 'var(--accent-purple)' }}>{usageCount}/5</strong>
                             </div>
                             <button 
                                 onClick={() => { setAuthMode('login'); setShowAuthModal(true); }}
-                                style={{ background: 'none', border: 'none', color: '#06b6d4', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}
+                                style={{ background: 'none', border: 'none', color: 'var(--accent-cyan)', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}
                             >
                                 Log In / Register
                             </button>
@@ -1857,18 +1857,18 @@ export default function Editor() {
                         <div className="canvas-area" style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
                             {activeTool === 'bulk-editor' ? (
                                 <div className="bulk-editor-workspace" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', position: 'relative', zIndex: 1 }}>
-                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'radial-gradient(rgba(255,255,255,0.02) 2px, transparent 2px)', backgroundSize: '24px 24px' }}></div>
+                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'radial-gradient(rgba(9, 9, 11, 0.05) 2px, transparent 2px)', backgroundSize: '24px 24px' }}></div>
                                     <div className="upload-zone" style={{ zIndex: 1, maxWidth: '500px' }} onClick={() => document.getElementById('bulk-files-selector')?.click()}>
                                         <div className="upload-icon">⚡</div>
                                         <h2 className="upload-title">Bulk Image Editor</h2>
                                         <p className="upload-desc">Select multiple frame cut images to remove background in batch</p>
                                     </div>
                                     {bulkQueue.length > 0 && (
-                                        <div className="bulk-progress-container" style={{ zIndex: 1, width: '100%', maxWidth: '500px', marginTop: '24px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--panel-border)', borderRadius: '12px', padding: '16px' }}>
+                                        <div className="bulk-progress-container" style={{ zIndex: 1, width: '100%', maxWidth: '500px', marginTop: '24px', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: '12px', padding: '16px' }}>
                                             <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: '700' }}>Batch Queue ({bulkQueue.filter(i => i.status === 'completed').length}/{bulkQueue.length})</h4>
                                             <div className="bulk-queue" style={{ maxHeight: '180px', overflowY: 'auto' }}>
                                                 {bulkQueue.map((item, idx) => (
-                                                    <div key={idx} className="bulk-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                                                    <div key={idx} className="bulk-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border-subtle)' }}>
                                                         <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{item.name}</span>
                                                         <span style={{ fontSize: '12px', fontWeight: '700', color: item.status === 'completed' ? '#22c55e' : item.status === 'processing' ? '#06b6d4' : '#6b7280' }}>
                                                             {item.status.toUpperCase()}
@@ -1881,10 +1881,10 @@ export default function Editor() {
                                 </div>
                             ) : activeTool === 'ai-generator' && !imageLoaded ? (
                                 <div className="ai-workspace-start" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', position: 'relative', zIndex: 1 }}>
-                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'radial-gradient(rgba(255,255,255,0.02) 2px, transparent 2px)', backgroundSize: '24px 24px' }}></div>
+                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'radial-gradient(rgba(9, 9, 11, 0.05) 2px, transparent 2px)', backgroundSize: '24px 24px' }}></div>
                                     <div style={{ zIndex: 1, textAlign: 'center', maxWidth: '500px' }}>
                                         <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎨</div>
-                                        <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', color: '#fff' }}>AI Image Creator</h2>
+                                        <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', color: 'var(--text-primary)' }}>AI Image Creator</h2>
                                         <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: '1.6' }}>
                                             Type a prompt in the left settings panel (e.g. "Luxury premium watch") and watch the AI generator create high-resolution marketing assets instantly.
                                         </p>
@@ -1892,10 +1892,10 @@ export default function Editor() {
                                 </div>
                             ) : activeTool === 'ai-video' && !generatedVideoUrl ? (
                                 <div className="ai-workspace-start" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', position: 'relative', zIndex: 1 }}>
-                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'radial-gradient(rgba(255,255,255,0.02) 2px, transparent 2px)', backgroundSize: '24px 24px' }}></div>
+                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'radial-gradient(rgba(9, 9, 11, 0.05) 2px, transparent 2px)', backgroundSize: '24px 24px' }}></div>
                                     <div style={{ zIndex: 1, textAlign: 'center', maxWidth: '500px' }}>
                                         <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎬</div>
-                                        <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', color: '#fff' }}>AI Video Motion Studio</h2>
+                                        <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', color: 'var(--text-primary)' }}>AI Video Motion Studio</h2>
                                         <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: '1.6' }}>
                                             Turn text descriptions or static images into moving cinema graphics. Provide a motion prompt on the left to synthesize keyframes.
                                         </p>
@@ -1903,10 +1903,10 @@ export default function Editor() {
                                 </div>
                             ) : activeTool === 'video-remover' && !videoSample ? (
                                 <div className="video-workspace-start" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', position: 'relative', zIndex: 1 }}>
-                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'radial-gradient(rgba(255,255,255,0.02) 2px, transparent 2px)', backgroundSize: '24px 24px' }}></div>
+                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'radial-gradient(rgba(9, 9, 11, 0.05) 2px, transparent 2px)', backgroundSize: '24px 24px' }}></div>
                                     <div style={{ zIndex: 1, textAlign: 'center', maxWidth: '500px' }}>
                                         <div style={{ fontSize: '48px', marginBottom: '16px' }}>📹</div>
-                                        <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', color: '#fff' }}>Video Background Remover</h2>
+                                        <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', color: 'var(--text-primary)' }}>Video Background Remover</h2>
                                         <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: '1.6' }}>
                                             Select a sample video clip in the left settings panel to start extracting moving subjects in real time.
                                         </p>
@@ -1914,7 +1914,7 @@ export default function Editor() {
                                 </div>
                             ) : !imageLoaded && activeTool !== 'video-remover' ? (
                                 <div className="workspace-upload-wrapper" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', position: 'relative', zIndex: 1 }}>
-                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'radial-gradient(rgba(255,255,255,0.02) 2px, transparent 2px)', backgroundSize: '24px 24px' }}></div>
+                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'radial-gradient(rgba(9, 9, 11, 0.05) 2px, transparent 2px)', backgroundSize: '24px 24px' }}></div>
                                     <div 
                                         className="upload-zone"
                                         style={{ zIndex: 1 }}
@@ -1969,7 +1969,7 @@ export default function Editor() {
                                                 return;
                                             }
                                             setCurrentView('result');
-                                        }} style={{ border: 'none', background: 'none', cursor: 'pointer', color: currentView === 'result' ? '#fff' : 'var(--text-muted)', fontWeight: '700', padding: '6px 12px' }}>
+                                        }} style={{ border: 'none', background: 'none', cursor: 'pointer', color: currentView === 'result' ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: '700', padding: '6px 12px' }}>
                                             Result View
                                         </button>
                                     </div>
@@ -1984,7 +1984,7 @@ export default function Editor() {
                                         onMouseLeave={() => setLoupe(l => ({ ...l, visible: false }))}
                                         style={{ flex: 1, position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                     >
-                                        <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'radial-gradient(rgba(255,255,255,0.02) 2px, transparent 2px)', backgroundSize: '24px 24px' }}></div>
+                                        <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'radial-gradient(rgba(9, 9, 11, 0.05) 2px, transparent 2px)', backgroundSize: '24px 24px' }}></div>
                                         
                                         <div 
                                             className="canvas-container"
@@ -1996,7 +1996,7 @@ export default function Editor() {
                                                 zIndex: 1
                                             }}
                                         >
-                                            <canvas ref={mainCanvasRef} id="main-canvas" style={{ display: 'block', maxWidth: 'none', boxShadow: '0 12px 32px rgba(0,0,0,0.5)', borderRadius: '4px' }}></canvas>
+                                            <canvas ref={mainCanvasRef} id="main-canvas" style={{ display: 'block', maxWidth: 'none', boxShadow: '0 12px 32px rgba(0,0,0,0.12)', borderRadius: '4px' }}></canvas>
                                             
                                             {lastClickedPixel && activeTool === 'bg-remover' && (
                                                 <div 

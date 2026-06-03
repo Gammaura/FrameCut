@@ -92,7 +92,7 @@ export default function Home() {
                     </nav>
                     {user ? (
                         <div className="nav-auth-group" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                            <span className="user-badge" style={{ fontSize: '13px', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--panel-border)', padding: '6px 12px', borderRadius: '999px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span className="user-badge" style={{ fontSize: '13px', background: 'rgba(9, 9, 11, 0.05)', border: '1px solid var(--panel-border)', padding: '6px 12px', borderRadius: '999px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: user.tier === 'free' ? '#9595b0' : user.tier === 'pro' ? '#a78bfa' : '#06b6d4' }}></span>
                                 {user.email.split('@')[0]} ({user.tier.toUpperCase()})
                             </span>

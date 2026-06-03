@@ -91,7 +91,7 @@ if response.status_code == 200:
                     </nav>
                     {user ? (
                         <div className="nav-auth-group" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                            <span className="user-badge" style={{ fontSize: '13px', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--panel-border)', padding: '6px 12px', borderRadius: '999px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span className="user-badge" style={{ fontSize: '13px', background: 'rgba(9, 9, 11, 0.05)', border: '1px solid var(--panel-border)', padding: '6px 12px', borderRadius: '999px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: user.tier === 'free' ? '#9595b0' : user.tier === 'pro' ? '#a78bfa' : '#06b6d4' }}></span>
                                 {user.email.split('@')[0]} ({user.tier.toUpperCase()})
                             </span>
@@ -186,7 +186,7 @@ if response.status_code == 200:
                             </div>
                         </div>
                         {user && user.tier === 'team' ? (
-                            <div style={{ marginTop: '24px', padding: '20px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--panel-border)', borderRadius: '16px' }}>
+                            <div style={{ marginTop: '24px', padding: '20px', background: 'var(--panel-bg)', border: '1px solid var(--panel-border)', borderRadius: '16px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                                     <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-muted)' }}>YOUR LIVE API KEY</span>
                                     <button 
@@ -201,14 +201,14 @@ if response.status_code == 200:
                                         type="text" 
                                         readOnly 
                                         value={user.apiKey || ''} 
-                                        style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--panel-border)', borderRadius: '8px', padding: '10px 12px', fontSize: '13px', color: '#a78bfa', fontFamily: 'monospace' }}
+                                        style={{ flex: 1, background: 'rgba(9, 9, 11, 0.05)', border: '1px solid var(--panel-border)', borderRadius: '8px', padding: '10px 12px', fontSize: '13px', color: '#7c3aed', fontFamily: 'monospace' }}
                                     />
                                     <button 
                                         onClick={() => {
                                             navigator.clipboard.writeText(user.apiKey || '');
                                             alert('API Key copied to clipboard!');
                                         }}
-                                        style={{ padding: '10px 16px', background: 'var(--primary-grad)', border: 'none', borderRadius: '8px', fontWeight: '700', color: '#000', cursor: 'pointer', fontSize: '13px' }}
+                                        style={{ padding: '10px 16px', background: 'var(--primary-grad)', border: 'none', borderRadius: '8px', fontWeight: '700', color: '#fff', cursor: 'pointer', fontSize: '13px' }}
                                     >
                                         Copy
                                     </button>

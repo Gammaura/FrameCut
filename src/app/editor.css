@@ -8,31 +8,31 @@
 }
 
 :root {
-    --bg-primary: #0a0a0f;
-    --bg-secondary: #12121a;
-    --bg-card: rgba(20, 20, 32, 0.7);
-    --bg-card-hover: rgba(28, 28, 44, 0.8);
+    --bg-primary: #ffffff;
+    --bg-secondary: #f4f4f5;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f4f4f5;
 
-    --text-primary: #f0f0f5;
-    --text-secondary: #9595b0;
-    --text-muted: #5a5a75;
+    --text-primary: #09090b;
+    --text-secondary: #52525b;
+    --text-muted: #71717a;
 
-    --accent-purple: #a78bfa;
-    --accent-cyan: #06b6d4;
-    --accent-pink: #f472b6;
-    --accent-green: #34d399;
+    --accent-purple: #7c3aed;
+    --accent-cyan: #0891b2;
+    --accent-pink: #db2777;
+    --accent-green: #16a34a;
 
-    --gradient-primary: linear-gradient(135deg, #a78bfa 0%, #06b6d4 100%);
-    --gradient-warm: linear-gradient(135deg, #f472b6 0%, #a78bfa 100%);
-    --gradient-cool: linear-gradient(135deg, #06b6d4 0%, #34d399 100%);
+    --gradient-primary: linear-gradient(135deg, #7c3aed 0%, #0891b2 100%);
+    --gradient-warm: linear-gradient(135deg, #db2777 0%, #7c3aed 100%);
+    --gradient-cool: linear-gradient(135deg, #0891b2 0%, #16a34a 100%);
 
-    --border-subtle: rgba(255, 255, 255, 0.06);
-    --border-active: rgba(167, 139, 250, 0.4);
+    --border-subtle: #e4e4e7;
+    --border-active: #7c3aed;
 
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.5);
-    --shadow-glow: 0 0 30px rgba(167, 139, 250, 0.15);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 12px 36px rgba(0, 0, 0, 0.12);
+    --shadow-glow: 0 0 30px rgba(124, 58, 237, 0.08);
 
     --radius-sm: 8px;
     --radius-md: 12px;
@@ -73,7 +73,7 @@
     position: absolute;
     border-radius: 50%;
     filter: blur(120px);
-    opacity: 0.3;
+    opacity: 0.08;
     animation: glowFloat 20s ease-in-out infinite;
 }
 
@@ -123,7 +123,7 @@
     padding: 10px 24px;
     border-bottom: 1px solid var(--border-subtle);
     backdrop-filter: blur(20px);
-    background: rgba(10, 10, 15, 0.6);
+    background: rgba(255, 255, 255, 0.85);
     flex-shrink: 0;
 }
 
@@ -321,7 +321,7 @@
     align-items: center;
     gap: 10px;
     padding: 8px 12px;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--bg-secondary);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
     margin-bottom: 8px;
@@ -351,7 +351,7 @@
     width: 100%;
     height: 6px;
     border-radius: 3px;
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.08);
     outline: none;
     cursor: pointer;
 }
@@ -399,7 +399,7 @@
 .checkbox-custom {
     width: 20px;
     height: 20px;
-    border: 2px solid rgba(255, 255, 255, 0.15);
+    border: 2px solid var(--border-subtle);
     border-radius: 6px;
     display: flex;
     align-items: center;
@@ -555,7 +555,7 @@
 
 .tab:hover:not(.active) {
     color: var(--text-secondary);
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--bg-card-hover);
 }
 
 .canvas-wrapper {
@@ -576,13 +576,13 @@
     position: absolute;
     inset: 0;
     background-image:
-        linear-gradient(45deg, #1a1a2e 25%, transparent 25%),
-        linear-gradient(-45deg, #1a1a2e 25%, transparent 25%),
-        linear-gradient(45deg, transparent 75%, #1a1a2e 75%),
-        linear-gradient(-45deg, transparent 75%, #1a1a2e 75%);
+        linear-gradient(45deg, #e4e4e7 25%, transparent 25%),
+        linear-gradient(-45deg, #e4e4e7 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #e4e4e7 75%),
+        linear-gradient(-45deg, transparent 75%, #e4e4e7 75%);
     background-size: 20px 20px;
     background-position: 0 0, 0 10px, 10px -10px, -10px 0;
-    opacity: 0.5;
+    opacity: 0.8;
 }
 
 .canvas-container {
@@ -620,7 +620,7 @@
     z-index: 100;
     overflow: hidden;
     transform: translate(-50%, -130%);
-    background: #0a0a0f;
+    background: var(--bg-primary);
 }
 
 .magnifier-loupe canvas {
@@ -856,7 +856,7 @@
 /* ===== TOOLBAR SIDEBAR ===== */
 .editor-toolbar {
     width: 72px;
-    background: rgba(18, 18, 26, 0.85);
+    background: rgba(255, 255, 255, 0.9);
     border-right: 1px solid var(--border-subtle);
     display: flex;
     flex-direction: column;
@@ -884,13 +884,13 @@
 }
 
 .toolbar-btn:hover {
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(0, 0, 0, 0.04);
     color: var(--text-primary);
 }
 
 .toolbar-btn.active {
     background: var(--gradient-primary);
-    color: #000;
+    color: #fff;
     border-color: rgba(255, 255, 255, 0.2);
     box-shadow: 0 4px 12px rgba(167, 139, 250, 0.3);
 }
@@ -901,7 +901,7 @@
     left: 80px;
     top: 50%;
     transform: translateY(-50%) translateX(10px);
-    background: #12121a;
+    background: var(--bg-card);
     border: 1px solid var(--border-subtle);
     color: var(--text-primary);
     padding: 6px 12px;
@@ -938,7 +938,7 @@
 }
 
 .option-card {
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--bg-secondary);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
     padding: 12px 8px;
@@ -948,7 +948,7 @@
 }
 
 .option-card:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-card-hover);
     border-color: var(--accent-purple);
 }
 
@@ -978,7 +978,7 @@
     gap: 12px;
     padding: 10px;
     border: 1px solid var(--border-subtle);
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--bg-secondary);
     border-radius: var(--radius-md);
     cursor: pointer;
     transition: all var(--transition-fast);
@@ -986,7 +986,7 @@
 
 .ad-template-item:hover {
     border-color: var(--accent-cyan);
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--bg-card-hover);
 }
 
 .ad-template-item.active {
@@ -1095,7 +1095,7 @@
 .canvas-processing-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(10, 10, 15, 0.85);
+    background: rgba(255, 255, 255, 0.85);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1109,7 +1109,7 @@
 .spinner-ring {
     width: 48px;
     height: 48px;
-    border: 4px solid rgba(255, 255, 255, 0.1);
+    border: 4px solid rgba(0, 0, 0, 0.1);
     border-top: 4px solid var(--accent-purple);
     border-radius: 50%;
     animation: spin 1s linear infinite;
