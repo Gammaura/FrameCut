@@ -7,56 +7,8 @@ import './landing.css';
 
 export default function Home() {
     const { user, logout, setShowAuthModal, setAuthMode } = useAuth();
-    const [sliderPos, setSliderPos] = useState(50);
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
-    const containerRef = useRef(null);
-    const isSliding = useRef(false);
-
-    const handleMove = (clientX) => {
-        if (!containerRef.current) return;
-        const rect = containerRef.current.getBoundingClientRect();
-        let percentage = ((clientX - rect.left) / rect.width) * 100;
-        if (percentage < 0) percentage = 0;
-        if (percentage > 100) percentage = 100;
-        setSliderPos(percentage);
-    };
-
-    const startSliding = () => {
-        isSliding.current = true;
-    };
-
-    useEffect(() => {
-        const stopSliding = () => {
-            isSliding.current = false;
-        };
-
-        const onMouseMove = (e) => {
-            if (!isSliding.current) return;
-            handleMove(e.clientX);
-        };
-
-        const onTouchMove = (e) => {
-            if (!isSliding.current) return;
-            handleMove(e.touches[0].clientX);
-        };
-
-        window.addEventListener('mouseup', stopSliding);
-        window.addEventListener('mousemove', onMouseMove);
-        window.addEventListener('touchend', stopSliding);
-        window.addEventListener('touchmove', onTouchMove);
-
-        return () => {
-            window.removeEventListener('mouseup', stopSliding);
-            window.removeEventListener('mousemove', onMouseMove);
-            window.removeEventListener('touchend', stopSliding);
-            window.removeEventListener('touchmove', onTouchMove);
-        };
-    }, []);
-
-    const onContainerClick = (e) => {
-        if (e.target.closest('#comparison-handle')) return;
-        handleMove(e.clientX);
-    };
+    const [activeTab, setActiveTab] = useState('editor'); // 'editor' | 'generator'
 
     return (
         <div className="landing-page-root">
@@ -68,7 +20,7 @@ export default function Home() {
 
             {/* Navigation Header */}
             <header className="navbar">
-                <div class="nav-container">
+                <div className="nav-container">
                     <Link href="/" className="logo" style={{ textDecoration: 'none' }}>
                         <span style={{ textTransform: 'uppercase', letterSpacing: '0.04em', display: 'inline-flex', alignItems: 'center', fontSize: '20px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
                             <strong style={{ fontWeight: '900', color: '#475569' }}>FRAME</strong>
@@ -172,8 +124,8 @@ export default function Home() {
                         </div>
                     ) : (
                         <div className="nav-auth-group" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                            <button className="nav-link" onClick={() => { setAuthMode('login'); setShowAuthModal(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>Sign In</button>
-                            <button className="btn btn-primary" onClick={() => { setAuthMode('signup'); setShowAuthModal(true); }} style={{ cursor: 'pointer', padding: '8px 20px', borderRadius: '999px', fontWeight: '600', fontSize: '13px' }}>Sign Up</button>
+                            <button className="nav-link" onClick={() => { setAuthMode('login'); setShowAuthModal(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>Log in</button>
+                            <button className="btn" onClick={() => { setAuthMode('signup'); setShowAuthModal(true); }} style={{ cursor: 'pointer', padding: '8px 20px', borderRadius: '999px', fontWeight: '600', fontSize: '13px', background: '#000000', color: '#ffffff' }}>Sign up</button>
                         </div>
                     )}
                 </div>
@@ -194,100 +146,396 @@ export default function Home() {
                     <Link href="/editor" className="btn btn-primary" style={{ background: '#000000', color: '#ffffff', borderRadius: '9999px', fontWeight: '600', padding: '14px 32px', border: 'none', boxShadow: 'none', fontSize: '15px' }}>
                         Start creating
                     </Link>
-                    <a href="#features" className="btn btn-glass" style={{ background: '#e4e4e7', color: '#09090b', borderRadius: '9999px', fontWeight: '600', padding: '14px 32px', border: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '15px' }}>
+                    <a href="#features" className="btn btn-glass" style={{ background: '#ffffff', color: '#09090b', borderRadius: '9999px', fontWeight: '600', padding: '14px 32px', border: '1px solid #e4e4e7', display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '15px' }}>
                         <span style={{ fontSize: '10px', marginRight: '4px' }}>▶</span> Watch video
                     </a>
                 </div>
 
-                {/* Interactive Comparison Slider */}
+                {/* Horizontal row of features */}
+                <div className="hero-features-row">
+                    <div className="hero-feature-item">
+                        <div className="hero-feature-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#71717a' }}>
+                                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                            </svg>
+                        </div>
+                        <div className="hero-feature-info">
+                            <h4>AI-Powered</h4>
+                            <p>Smarter workflows</p>
+                        </div>
+                    </div>
+                    <div className="hero-feature-item">
+                        <div className="hero-feature-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#71717a' }}>
+                                <path d="m12 3-10 5 10 5 10-5-10-5Z"/>
+                                <path d="m2 17 10 5 10-5"/>
+                                <path d="m2 12 10 5 10-5"/>
+                            </svg>
+                        </div>
+                        <div className="hero-feature-info">
+                            <h4>All-in-One</h4>
+                            <p>Edit. Animate. Export.</p>
+                        </div>
+                    </div>
+                    <div className="hero-feature-item">
+                        <div className="hero-feature-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#71717a' }}>
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                        </div>
+                        <div className="hero-feature-info">
+                            <h4>Collaborative</h4>
+                            <p>Work with your team</p>
+                        </div>
+                    </div>
+                    <div className="hero-feature-item">
+                        <div className="hero-feature-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#71717a' }}>
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                <path d="m9 11 2 2 4-4"/>
+                            </svg>
+                        </div>
+                        <div className="hero-feature-info">
+                            <h4>Secure & Reliable</h4>
+                            <p>Enterprise-grade security</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Unified Interactive Mockup Frame */}
                 <div className="demo-container">
-                    <div 
-                        className="slider-comparison" 
-                        ref={containerRef}
-                        onClick={onContainerClick}
-                    >
-                        {/* Base Layer (Isolated transparent result) */}
-                        <div className="comparison-layer result-layer">
-                            <div className="mock-frame">
-                                <div className="frame-header">
-                                    <span className="header-dot"></span>
-                                    <span className="header-dot"></span>
-                                    <span className="header-dot"></span>
-                                </div>
-                                <div className="frame-viewport">
-                                    <div className="checkerboard-pattern"></div>
-                                    <div className="slot-cut">
-                                        <span className="slot-inner-text">Transparent Slot</span>
+                    <div className="app-mockup-container">
+                        {/* Mock Window Header */}
+                        <div className="mockup-header">
+                            <div className="mockup-window-controls">
+                                <span className="window-dot red"></span>
+                                <span className="window-dot yellow"></span>
+                                <span className="window-dot green"></span>
+                            </div>
+                            
+                            <div className="mockup-tabs">
+                                <button 
+                                    className={`mockup-tab-btn ${activeTab === 'editor' ? 'active' : ''}`}
+                                    onClick={() => setActiveTab('editor')}
+                                >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M12 20h9"/>
+                                        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+                                    </svg>
+                                    Creative Editor
+                                </button>
+                                <button 
+                                    className={`mockup-tab-btn ${activeTab === 'generator' ? 'active' : ''}`}
+                                    onClick={() => setActiveTab('generator')}
+                                >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                                    </svg>
+                                    AI Generator
+                                </button>
+                            </div>
+                            
+                            <div className="mockup-header-actions">
+                                {activeTab === 'editor' && (
+                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                        <span style={{ fontSize: '11px', color: '#71717a', fontWeight: '600' }}>100%</span>
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ color: '#71717a' }}>
+                                            <path d="m6 9 6 6 6-6"/>
+                                        </svg>
                                     </div>
-                                </div>
+                                )}
                             </div>
                         </div>
 
-                        {/* Overlay Layer (Original colored frame) */}
-                        <div 
-                            className="comparison-layer original-layer" 
-                            style={{ width: `${sliderPos}%` }}
-                        >
-                            <div className="mock-frame">
-                                <div className="frame-header">
-                                    <span className="header-dot"></span>
-                                    <span className="header-dot"></span>
-                                    <span className="header-dot"></span>
+                        {/* Tab 1: Editor View */}
+                        {activeTab === 'editor' && (
+                            <div className="editor-mockup-workspace">
+                                <div className="editor-mockup-toolbar">
+                                    <div className="editor-toolbar-left">
+                                        <button className="toolbar-icon-btn">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <path d="M3 7v6h6"/>
+                                                <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>
+                                            </svg>
+                                        </button>
+                                        <button className="toolbar-icon-btn">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <path d="M21 7v6h-6"/>
+                                                <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <div className="editor-toolbar-center">
+                                        <button className="toolbar-icon-btn">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <polygon points="6 3 20 12 6 21 6 3"/>
+                                            </svg>
+                                        </button>
+                                        <button className="toolbar-icon-btn">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <path d="m15 18-6-6 6-6"/>
+                                            </svg>
+                                        </button>
+                                        <div className="zoom-selector">
+                                            100%
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <path d="m6 9 6 6 6-6"/>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div className="editor-toolbar-right">
+                                        <button className="btn btn-primary" style={{ background: '#000000', color: '#ffffff', borderRadius: '8px', padding: '6px 14px', fontSize: '12px', border: 'none', fontWeight: '600' }}>
+                                            Export
+                                        </button>
+                                    </div>
                                 </div>
-                                <div className="frame-viewport">
-                                    <div className="slot-cut">
-                                        <span className="slot-inner-text">Solid Color Slot</span>
+                                
+                                <div className="editor-mockup-body">
+                                    <div className="editor-mockup-sidebar-left">
+                                        <div className="editor-mockup-project-dropdown">
+                                            <button className="project-dropdown-btn">
+                                                📁 Project V
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginLeft: 'auto' }}>
+                                                    <path d="m6 9 6 6 6-6"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div className="editor-mockup-menu-list">
+                                            <div className="editor-mockup-menu-item active">
+                                                <span>📁</span> Media
+                                            </div>
+                                            <div className="editor-mockup-menu-item">
+                                                <span>T</span> Text
+                                            </div>
+                                            <div className="editor-mockup-menu-item">
+                                                <span>🧱</span> Elements
+                                            </div>
+                                            <div className="editor-mockup-menu-item">
+                                                <span>🎵</span> Audio
+                                            </div>
+                                            <div className="editor-mockup-menu-item">
+                                                <span>✨</span> Effects
+                                            </div>
+                                            <div className="editor-mockup-menu-item">
+                                                <span>📤</span> Export
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="editor-mockup-canvas-area">
+                                        <div className="editor-mockup-canvas-wrapper">
+                                            <img src="/3d_abstract_shapes.png" alt="3D abstract canvas asset" className="editor-mockup-canvas-img" />
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="editor-mockup-sidebar-right">
+                                        <div className="sidebar-right-tabs">
+                                            <button className="sidebar-right-tab-btn active">Design</button>
+                                            <button className="sidebar-right-tab-btn">Animate</button>
+                                            <button className="sidebar-right-tab-btn">Export</button>
+                                        </div>
+                                        
+                                        <div className="sidebar-right-section">
+                                            <div className="sidebar-right-section-title">Transform</div>
+                                            <div className="sidebar-grid-2">
+                                                <div className="sidebar-input-group">
+                                                    <span className="sidebar-input-label">Position</span>
+                                                    <div className="sidebar-input-wrapper">
+                                                        <span className="sidebar-input-prefix">X</span>
+                                                        <input type="text" className="sidebar-input" value="120" readOnly />
+                                                    </div>
+                                                </div>
+                                                <div className="sidebar-input-group">
+                                                    <span className="sidebar-input-label">&nbsp;</span>
+                                                    <div className="sidebar-input-wrapper">
+                                                        <span className="sidebar-input-prefix">Y</span>
+                                                        <input type="text" className="sidebar-input" value="80" readOnly />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="sidebar-grid-2">
+                                                <div className="sidebar-input-group">
+                                                    <span className="sidebar-input-label">Size</span>
+                                                    <div className="sidebar-input-wrapper">
+                                                        <span className="sidebar-input-prefix">W</span>
+                                                        <input type="text" className="sidebar-input" value="640" readOnly />
+                                                    </div>
+                                                </div>
+                                                <div className="sidebar-input-group">
+                                                    <span className="sidebar-input-label">&nbsp;</span>
+                                                    <div className="sidebar-input-wrapper">
+                                                        <span className="sidebar-input-prefix">H</span>
+                                                        <input type="text" className="sidebar-input" value="360" readOnly />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="sidebar-input-group" style={{ marginBottom: '12px' }}>
+                                                <span className="sidebar-input-label">Rotation</span>
+                                                <div className="sidebar-input-wrapper">
+                                                    <span className="sidebar-input-prefix">∡</span>
+                                                    <input type="text" className="sidebar-input" value="0°" readOnly />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="sidebar-right-section" style={{ borderBottom: 'none' }}>
+                                            <div className="sidebar-right-section-title">Style</div>
+                                            
+                                            <div className="sidebar-slider-group">
+                                                <div className="sidebar-slider-header">
+                                                    <span>Opacity</span>
+                                                    <span>100%</span>
+                                                </div>
+                                                <div className="sidebar-slider-row">
+                                                    <input type="range" className="sidebar-slider" value="100" readOnly />
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="sidebar-slider-group">
+                                                <div className="sidebar-slider-header">
+                                                    <span>Corner Radius</span>
+                                                    <span>20px</span>
+                                                </div>
+                                                <div className="sidebar-slider-row">
+                                                    <input type="range" className="sidebar-slider" value="20" readOnly />
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
 
-                        {/* Drag Handle */}
-                        <div 
-                            className="comparison-handle" 
-                            id="comparison-handle"
-                            style={{ left: `${sliderPos}%` }}
-                            onMouseDown={startSliding}
-                            onTouchStart={startSliding}
-                        >
-                            <div className="handle-button">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                                    <polyline points="8 17 3 12 8 7"/>
-                                    <polyline points="16 17 21 12 16 7"/>
-                                </svg>
+                        {/* Tab 2: Generator View */}
+                        {activeTab === 'generator' && (
+                            <div className="generator-mockup-workspace">
+                                <div className="generator-mockup-sidebar">
+                                    <div className="generator-mockup-logo">
+                                        <span style={{ textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: '900', color: '#475569' }}>FRAME</span>
+                                        <span style={{ textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: '300', color: '#94a3b8' }}>CUT</span>
+                                    </div>
+                                    
+                                    <div className="generator-mockup-menu-list">
+                                        <div className="generator-mockup-menu-item">
+                                            <span>🏠</span> Home
+                                        </div>
+                                        <div className="generator-mockup-menu-item active">
+                                            <span>✨</span> Generate
+                                        </div>
+                                        <div className="generator-mockup-menu-item">
+                                            <span>📤</span> Upload
+                                        </div>
+                                        <div className="generator-mockup-menu-item">
+                                            <span>📦</span> Batch
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="generator-mockup-section-title">Folders</div>
+                                    <div className="generator-mockup-menu-list">
+                                        <div className="generator-mockup-menu-item">
+                                            <span>📁</span> Brand Assets
+                                        </div>
+                                        <div className="generator-mockup-menu-item">
+                                            <span>📁</span> Explorations
+                                        </div>
+                                        <div className="generator-mockup-menu-item">
+                                            <span>📁</span> Spring 2026
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="generator-mockup-main">
+                                    <div className="generator-mockup-header">
+                                        <h3 className="generator-mockup-title">Generate</h3>
+                                    </div>
+                                    
+                                    <div className="generator-mockup-content">
+                                        <div className="generator-images-grid">
+                                            <div className="generator-image-card">
+                                                <img src="/cozy_bathroom.png" alt="Cozy bathroom AI generated rendering" />
+                                            </div>
+                                            <div className="generator-image-card">
+                                                <img src="/cozy_alcove_sofa.png" alt="Cozy alcove sofa AI generated rendering" />
+                                            </div>
+                                            <div className="generator-image-card">
+                                                <img src="/cozy_reading_nook.png" alt="Cozy reading nook AI generated rendering" />
+                                            </div>
+                                            <div className="generator-image-card">
+                                                <img src="/cozy_bedroom.png" alt="Cozy bedroom AI generated rendering" />
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="generator-details-panel">
+                                            <div>
+                                                <div className="generator-time-badge">1h ago</div>
+                                                <div className="generator-prompt-text">Design a cozy living space</div>
+                                            </div>
+                                            <div style={{ borderTop: '1px solid #f4f4f5', paddingTop: '12px' }}>
+                                                <div className="generator-time-badge">30m ago</div>
+                                                <div className="generator-prompt-text">Minimalist warm bathroom with wooden accessories</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             </section>
 
             {/* Trusted By Section */}
             <section className="trusted-by">
-                <h2 className="trusted-title">Trusted by creators and designers at</h2>
+                <h2 className="trusted-title">Trusted by 10,000+ creators & teams</h2>
                 <div className="brand-logos">
-                    <div className="brand-logo">FIGMA<span>STUDIO</span></div>
-                    <div className="brand-logo">CANVA<span>PRO</span></div>
-                    <div className="brand-logo">VERCEL<span>LABS</span></div>
-                    <div className="brand-logo">DRIBBBLE<span>CREATIVE</span></div>
-                    <div className="brand-logo">BEHANCE<span>PORTFOLIO</span></div>
+                    <div className="brand-logo-item">
+                        <svg width="15" height="22" viewBox="0 0 32 48" fill="none" style={{ marginRight: '6px' }}>
+                            <path d="M8 0C3.58 0 0 3.58 0 8C0 12.42 3.58 16 8 16H16V0H8Z" fill="#F24E1E"/>
+                            <path d="M24 0C19.58 0 16 3.58 16 8V16H24C28.42 16 32 12.42 32 8C32 3.58 28.42 0 24 0Z" fill="#FF7262"/>
+                            <path d="M8 16C3.58 16 0 19.58 0 24C0 28.42 3.58 32 8 32H16V16H8Z" fill="#A259FF"/>
+                            <path d="M8 32C3.58 32 0 35.58 0 40C0 44.42 3.58 48 8 48C12.42 48 16 44.42 16 40V32H8Z" fill="#1ABC9C"/>
+                            <path d="M24 16C19.58 16 16 19.58 16 24V32H24C28.42 32 32 28.42 32 24C32 19.58 28.42 16 24 16Z" fill="#19BCFE"/>
+                        </svg>
+                        Figma
+                    </div>
+                    <div className="brand-logo-item">
+                        <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'linear-gradient(135deg, #00c4cc 0%, #7d2ae8 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '9px', fontWeight: '900', marginRight: '6px' }}>C</div>
+                        <span style={{ color: '#09090b', fontWeight: '700' }}>Canva</span>
+                    </div>
+                    <div className="brand-logo-item">
+                        <svg width="18" height="16" viewBox="0 0 76 65" fill="#000000" style={{ marginRight: '6px' }}>
+                            <path d="M37.5273 0L75.0546 65L0 65L37.5273 0Z" />
+                        </svg>
+                        Vercel
+                    </div>
+                    <div className="brand-logo-item">
+                        <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#ea4c89', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '11px', fontWeight: 'bold', marginRight: '6px' }}>d</div>
+                        <span style={{ color: '#09090b', fontWeight: '700' }}>dribbble</span>
+                    </div>
+                    <div className="brand-logo-item">
+                        <div style={{ background: '#0057ff', color: '#fff', padding: '1px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', marginRight: '6px' }}>Bē</div>
+                        <span style={{ color: '#09090b', fontWeight: '700' }}>Behance</span>
+                    </div>
                 </div>
             </section>
 
             {/* Features Section */}
             <section className="features" id="features">
                 <div className="section-header">
-                    <h2 className="section-title">Smarter than your average tool</h2>
+                    <h2 className="section-title">Everything you need to create faster</h2>
                     <p className="section-subtitle">
-                        Designed specifically for making frame files transparent. Packed with custom algorithms that deliver professional edge control and instant isolation.
+                        Professional AI-powered tools designed to help creators generate, edit, and enhance content in seconds.
                     </p>
                 </div>
                 <div className="features-grid">
                     <div className="feature-card">
-                        <div className="feature-icon-wrapper">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-                                <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-                                <line x1="12" y1="22.08" x2="12" y2="12"/>
+                        <div className="feature-icon-wrapper purple">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <path d="M4 15V9a5 5 0 0 1 5-5h6a5 5 0 0 1 5 5v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5Z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                                <path d="M12 2v2M12 20v2M2 12h2M20 12h2"/>
                             </svg>
                         </div>
                         <h3 className="feature-title">Contiguous Masking</h3>
@@ -296,9 +544,10 @@ export default function Home() {
                         </p>
                     </div>
                     <div className="feature-card">
-                        <div className="feature-icon-wrapper">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        <div className="feature-icon-wrapper blue">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <path d="M12 3a9 9 0 0 1 9 9c0 4.97-4.03 9-9 9s-9-4.03-9-9c0-4.97 4.03-9 9-9Z" strokeDasharray="3 3"/>
+                                <circle cx="12" cy="12" r="6"/>
                             </svg>
                         </div>
                         <h3 className="feature-title">Edge Softness (Feather)</h3>
@@ -307,18 +556,63 @@ export default function Home() {
                         </p>
                     </div>
                     <div className="feature-card">
-                        <div className="feature-icon-wrapper">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="11" cy="11" r="8"/>
-                                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                                <line x1="11" y1="8" x2="11" y2="14"/>
-                                <line x1="8" y1="11" x2="14" y2="11"/>
+                        <div className="feature-icon-wrapper violet">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <path d="m2 22 1-1c.5-.5.5-1.3 0-1.8l-1.1-1.1c-.5-.5-.5-1.3 0-1.8L12.5 5.7M18.3 6.3l-2.6-2.6M22 2l-3.7 3.7-2.6-2.6L12 6.8l7.8 7.8 3.7-3.7-1.5-1.5Z"/>
                             </svg>
                         </div>
                         <h3 className="feature-title">Precision Color Picker</h3>
                         <p className="feature-desc">
                             Equipped with a real-time hover loupe magnifier that acts like a microscope. Select target colors with pixel-perfect accuracy on any display.
                         </p>
+                    </div>
+                </div>
+
+                {/* Stats Panel Card */}
+                <div className="stats-panel-card">
+                    <div className="stats-panel-grid">
+                        <div className="stats-panel-item">
+                            <div className="stats-item-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="9" cy="7" r="4"/>
+                                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                </svg>
+                            </div>
+                            <div className="stats-item-number">10M+</div>
+                            <div className="stats-item-label">Images Processed</div>
+                        </div>
+                        <div className="stats-panel-item">
+                            <div className="stats-item-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+                                    <path d="M2 12h20"/>
+                                </svg>
+                            </div>
+                            <div className="stats-item-number">50K+</div>
+                            <div className="stats-item-label">Creators Worldwide</div>
+                        </div>
+                        <div className="stats-panel-item">
+                            <div className="stats-item-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                    <path d="m9 11 2 2 4-4"/>
+                                </svg>
+                            </div>
+                            <div className="stats-item-number">99.9%</div>
+                            <div className="stats-item-label">Uptime & Reliability</div>
+                        </div>
+                        <div className="stats-panel-item">
+                            <div className="stats-item-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                                </svg>
+                            </div>
+                            <div className="stats-item-number">2x</div>
+                            <div className="stats-item-label">Faster Workflow</div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -331,38 +625,74 @@ export default function Home() {
                 </div>
                 <div className="testimonials-grid">
                     <div className="testimonial-card">
+                        <div className="testimonial-rating">
+                            <div className="rating-stars">
+                                {[...Array(5)].map((_, i) => (
+                                    <svg key={i} width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                                    </svg>
+                                ))}
+                            </div>
+                            <span className="rating-score">4.9/5</span>
+                        </div>
                         <p className="testimonial-text">
-                            "Sangat mudah digunakan! Membantu bisnis kecil kami membuat twibbon dan frame promosi dalam hitungan detik. Terima kasih FrameCut!"
+                            "FrameCut saves me hours every week. The background removal is insanely accurate."
                         </p>
                         <div className="testimonial-user">
-                            <div className="user-avatar">KD</div>
+                            <div className="user-avatar" style={{ background: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)' }}>
+                                <span style={{ fontSize: '11px', fontWeight: '700', color: '#fff' }}>SJ</span>
+                            </div>
                             <div>
-                                <h4 className="user-name">Kurnia D.</h4>
+                                <h4 className="user-name">Sarah Johnson</h4>
                                 <p className="user-role">Creative Director</p>
                             </div>
                         </div>
                     </div>
                     <div className="testimonial-card">
+                        <div className="testimonial-rating">
+                            <div className="rating-stars">
+                                {[...Array(5)].map((_, i) => (
+                                    <svg key={i} width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                                    </svg>
+                                ))}
+                            </div>
+                            <span className="rating-score">4.9/5</span>
+                        </div>
                         <p className="testimonial-text">
-                            "Biasanya saya harus pakai Photoshop dan repot seleksi pen tool. Sekarang tinggal upload, pilih warna solid, atur softness, dan jadi! Sangat menghemat waktu."
+                            "The edge softness tool is a game changer. My product photos have never looked better."
                         </p>
                         <div className="testimonial-user">
-                            <div className="user-avatar">BS</div>
+                            <div className="user-avatar" style={{ background: 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)' }}>
+                                <span style={{ fontSize: '11px', fontWeight: '700', color: '#fff' }}>MC</span>
+                            </div>
                             <div>
-                                <h4 class="user-name">Budi S.</h4>
-                                <p class="user-role">Freelance Graphic Designer</p>
+                                <h4 className="user-name">Mike Chen</h4>
+                                <p className="user-role">Product Designer</p>
                             </div>
                         </div>
                     </div>
                     <div className="testimonial-card">
+                        <div className="testimonial-rating">
+                            <div className="rating-stars">
+                                {[...Array(5)].map((_, i) => (
+                                    <svg key={i} width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                                    </svg>
+                                ))}
+                            </div>
+                            <span className="rating-score">4.9/5</span>
+                        </div>
                         <p className="testimonial-text">
-                            "Pemrosesan gambarnya berjalan instan bahkan untuk aset beresolusi 4K setelah update optimasi. Interface-nya sangat rapi dan intuitif."
+                            "I love how simple yet powerful FrameCut is. It fits perfectly into my daily workflow."
                         </p>
                         <div className="testimonial-user">
-                            <div className="user-avatar">MJ</div>
+                            <div className="user-avatar" style={{ background: 'linear-gradient(135deg, #cfd9df 0%, #e2ebf0 100%)' }}>
+                                <span style={{ fontSize: '11px', fontWeight: '700', color: '#fff' }}>ED</span>
+                            </div>
                             <div>
-                                <h4 className="user-name">Mary J.</h4>
-                                <p className="user-role">Twitch Streamer & Artist</p>
+                                <h4 className="user-name">Emily Davis</h4>
+                                <p className="user-role">Content Creator</p>
                             </div>
                         </div>
                     </div>
@@ -376,7 +706,7 @@ export default function Home() {
                     <p className="cta-desc">
                         Cut your frames, export high-quality transparent PNGs, and build your twibbon campaigns instantly.
                     </p>
-                    <Link href="/editor" className="btn btn-primary">Open FrameCut Editor</Link>
+                    <Link href="/editor" className="btn btn-primary" style={{ background: '#000000', color: '#ffffff', borderRadius: '9999px', fontWeight: '600', padding: '14px 36px', border: 'none' }}>Open FrameCut Editor</Link>
                 </div>
             </section>
 
