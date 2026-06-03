@@ -1,7 +1,7 @@
 /* ===== CSS RESET & VARIABLES ===== */
-*,
-*::before,
-*::after {
+.editor-page-root *,
+.editor-page-root *::before,
+.editor-page-root *::after {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -47,16 +47,10 @@
     --font-mono: 'JetBrains Mono', monospace;
 }
 
-html, body {
+.editor-page-root {
     height: 100vh;
     overflow: hidden;
-}
-
-html {
     font-size: 16px;
-}
-
-body {
     font-family: var(--font-sans);
     background: var(--bg-primary);
     color: var(--text-primary);
