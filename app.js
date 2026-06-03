@@ -654,16 +654,14 @@
     }
 
     function floodFillMask(data, w, h, startX, startY, color, tolerance, visited, mask) {
-        const stack = [startX + startY * w];
+        const startPos = startX + startY * w;
+        const stack = [startPos];
+        visited[startPos] = 1;
 
         while (stack.length > 0) {
             const pos = stack.pop();
-            if (pos < 0 || pos >= w * h) continue;
-            if (visited[pos]) continue;
-
             const x = pos % w;
             const y = Math.floor(pos / w);
-            visited[pos] = 1;
 
             const idx = pos * 4;
             const dist = colorDistance(
@@ -674,16 +672,23 @@
             if (dist <= tolerance && data[idx + 3] > 0) {
                 mask[pos] = 1;
 
+                const pushNeighbor = (npos) => {
+                    if (!visited[npos]) {
+                        visited[npos] = 1;
+                        stack.push(npos);
+                    }
+                };
+
                 // 8-connected neighbors for better coverage
-                if (x > 0) stack.push(pos - 1);
-                if (x < w - 1) stack.push(pos + 1);
-                if (y > 0) stack.push(pos - w);
-                if (y < h - 1) stack.push(pos + w);
+                if (x > 0) pushNeighbor(pos - 1);
+                if (x < w - 1) pushNeighbor(pos + 1);
+                if (y > 0) pushNeighbor(pos - w);
+                if (y < h - 1) pushNeighbor(pos + w);
                 // Diagonals
-                if (x > 0 && y > 0) stack.push(pos - w - 1);
-                if (x < w - 1 && y > 0) stack.push(pos - w + 1);
-                if (x > 0 && y < h - 1) stack.push(pos + w - 1);
-                if (x < w - 1 && y < h - 1) stack.push(pos + w + 1);
+                if (x > 0 && y > 0) pushNeighbor(pos - w - 1);
+                if (x < w - 1 && y > 0) pushNeighbor(pos - w + 1);
+                if (x > 0 && y < h - 1) pushNeighbor(pos + w - 1);
+                if (x < w - 1 && y < h - 1) pushNeighbor(pos + w + 1);
             }
         }
     }
