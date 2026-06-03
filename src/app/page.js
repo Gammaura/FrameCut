@@ -85,8 +85,8 @@ export default function Home() {
                     <nav className="nav-links">
                         <a href="#features" className="nav-link">Features</a>
                         <a href="#testimonials" className="nav-link">Reviews</a>
-                        <Link href="/editor" className="nav-link">Pricing</Link>
-                        <Link href="/editor" className="nav-link">API</Link>
+                        <Link href="/pricing" className="nav-link">Pricing</Link>
+                        <Link href="/api" className="nav-link">API</Link>
                     </nav>
                     <Link href="/editor" className="btn btn-glass">Launch App</Link>
                 </div>
