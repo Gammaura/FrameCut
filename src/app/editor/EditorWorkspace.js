@@ -1057,14 +1057,8 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                 cutoutResult = outImageData;
             });
             
-            const imgElement = new Image();
-            imgElement.src = img.src;
-            await new Promise((resolve) => {
-                imgElement.onload = resolve;
-            });
-            
             setProcessing({ visible: true, progress: 70, title: 'Segmenting foreground...' });
-            await selfieSegmentation.send({ image: imgElement });
+            await selfieSegmentation.send({ image: img });
             
             let attempts = 0;
             while (!cutoutResult && attempts < 100) {
@@ -1123,10 +1117,10 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
             setProcessing({ visible: true, progress: 95, title: 'Rendering final output...' });
             
             const resultImg = new Image();
-            resultImg.src = URL.createObjectURL(processedBlob);
             await new Promise((resolve, reject) => {
                 resultImg.onload = resolve;
                 resultImg.onerror = reject;
+                resultImg.src = URL.createObjectURL(processedBlob);
             });
             
             const w = imgData.width;
