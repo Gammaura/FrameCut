@@ -872,7 +872,7 @@ export default function Editor() {
                                         <span className="color-hex">{rgbToHex(targetColor.r, targetColor.g, targetColor.b).toUpperCase()}</span>
                                     </div>
                                     <button 
-                                        className="btn btn-outline btn-sm" 
+                                        className="editor-btn editor-btn-outline editor-btn-sm" 
                                         onClick={() => autoDetectColor(originalImageData)}
                                         style={{ width: '100%' }}
                                     >
@@ -930,13 +930,13 @@ export default function Editor() {
                                 </div>
 
                                 <div className="action-buttons">
-                                    <button className="btn btn-primary" onClick={applyTransparency}>
+                                    <button className="editor-btn editor-btn-primary" onClick={applyTransparency}>
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <polyline points="20 6 9 17 4 12"/>
                                         </svg>
                                         Apply
                                     </button>
-                                    <button className="btn btn-outline" onClick={resetEditor}>
+                                    <button className="editor-btn editor-btn-outline" onClick={resetEditor}>
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <polyline points="1 4 1 10 7 10"/>
                                             <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
@@ -948,7 +948,7 @@ export default function Editor() {
                                 <div className="divider"></div>
 
                                 <button 
-                                    className="btn btn-download" 
+                                    className="editor-btn editor-btn-download" 
                                     onClick={downloadPNG} 
                                     disabled={!resultImageData}
                                 >
@@ -961,7 +961,7 @@ export default function Editor() {
                                 </button>
 
                                 <button 
-                                    className="btn btn-outline btn-sm" 
+                                    className="editor-btn editor-btn-outline editor-btn-sm" 
                                     onClick={triggerNewUpload} 
                                     style={{ marginTop: '8px', width: '100%' }}
                                 >

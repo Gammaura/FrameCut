@@ -432,7 +432,7 @@
 }
 
 /* ===== BUTTONS ===== */
-.btn {
+.editor-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -449,41 +449,41 @@
     white-space: nowrap;
 }
 
-.btn-primary {
+.editor-btn-primary {
     background: var(--gradient-primary);
     color: white;
     box-shadow: 0 4px 16px rgba(167, 139, 250, 0.3);
     flex: 1;
 }
 
-.btn-primary:hover {
+.editor-btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 24px rgba(167, 139, 250, 0.4);
 }
 
-.btn-primary:active {
+.editor-btn-primary:active {
     transform: translateY(0);
 }
 
-.btn-outline {
+.editor-btn-outline {
     background: transparent;
     color: var(--text-secondary);
     border: 1px solid var(--border-subtle);
     flex: 1;
 }
 
-.btn-outline:hover {
+.editor-btn-outline:hover {
     border-color: var(--border-active);
     color: var(--text-primary);
     background: rgba(167, 139, 250, 0.05);
 }
 
-.btn-sm {
+.editor-btn-sm {
     padding: 8px 14px;
     font-size: 0.8rem;
 }
 
-.btn-download {
+.editor-btn-download {
     width: 100%;
     background: var(--gradient-cool);
     color: white;
@@ -492,12 +492,12 @@
     box-shadow: 0 4px 16px rgba(6, 182, 212, 0.3);
 }
 
-.btn-download:hover:not(:disabled) {
+.editor-btn-download:hover:not(:disabled) {
     transform: translateY(-2px);
     box-shadow: 0 6px 24px rgba(6, 182, 212, 0.4);
 }
 
-.btn-download:disabled {
+.editor-btn-download:disabled {
     opacity: 0.4;
     cursor: not-allowed;
 }
