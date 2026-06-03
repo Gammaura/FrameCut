@@ -8,17 +8,18 @@ import '../editor.css';
 
 // ===== HELPER FUNCTIONS =====
 function colorDistanceSq(r1, g1, b1, r2, g2, b2) {
+    const rmean = (r1 + r2) / 2;
     const dr = r1 - r2;
     const dg = g1 - g2;
     const db = b1 - b2;
-    return dr * dr + dg * dg + db * db;
+    const weightR = 2 + rmean / 256;
+    const weightG = 4;
+    const weightB = 2 + (255 - rmean) / 256;
+    return (weightR * dr * dr + weightG * dg * dg + weightB * db * db) / 3;
 }
 
 function colorDistance(r1, g1, b1, r2, g2, b2) {
-    const dr = r1 - r2;
-    const dg = g1 - g2;
-    const db = b1 - b2;
-    return Math.sqrt(dr * dr + dg * dg + db * db);
+    return Math.sqrt(colorDistanceSq(r1, g1, b1, r2, g2, b2));
 }
 
 function rgbToHex(r, g, b) {
@@ -781,34 +782,44 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
 
             setProcessing({ visible: true, progress: 80, title: 'Dilating edges...' });
 
-            // Apply Edge Softening
+            // Apply Edge Softening (2-pass alpha box blur)
             if (softness > 0) {
-                const alphaMap = new Uint8Array(w * h);
+                const alpha = new Uint8Array(w * h);
                 for (let i = 0; i < w * h; i++) {
-                    alphaMap[i] = data[i * 4 + 3];
+                    alpha[i] = data[i * 4 + 3];
                 }
-
-                const softRadius = softness;
-                for (let y = softRadius; y < h - softRadius; y++) {
-                    for (let x = softRadius; x < w - softRadius; x++) {
-                        const idx = y * w + x;
-                        if (alphaMap[idx] === 255) {
-                            let transparentNeighbors = 0;
-                            let total = 0;
-                            for (let dy = -softRadius; dy <= softRadius; dy++) {
-                                for (let dx = -softRadius; dx <= softRadius; dx++) {
-                                    const nidx = (y + dy) * w + (x + dx);
-                                    if (alphaMap[nidx] === 0) {
-                                        transparentNeighbors++;
-                                    }
-                                    total++;
-                                }
-                            }
-                            if (transparentNeighbors > 0) {
-                                const opacityRatio = 1 - (transparentNeighbors / total);
-                                data[idx * 4 + 3] = Math.round(opacityRatio * 255);
+                const radius = Math.min(12, softness);
+                const tempAlpha = new Uint8Array(w * h);
+                
+                // Horizontal Pass
+                for (let y = 0; y < h; y++) {
+                    for (let x = 0; x < w; x++) {
+                        let sum = 0;
+                        let count = 0;
+                        for (let dx = -radius; dx <= radius; dx++) {
+                            const nx = x + dx;
+                            if (nx >= 0 && nx < w) {
+                                sum += alpha[y * w + nx];
+                                count++;
                             }
                         }
+                        tempAlpha[y * w + x] = sum / count;
+                    }
+                }
+                
+                // Vertical Pass
+                for (let y = 0; y < h; y++) {
+                    for (let x = 0; x < w; x++) {
+                        let sum = 0;
+                        let count = 0;
+                        for (let dy = -radius; dy <= radius; dy++) {
+                            const ny = y + dy;
+                            if (ny >= 0 && ny < h) {
+                                sum += tempAlpha[ny * w + x];
+                                count++;
+                            }
+                        }
+                        data[(y * w + x) * 4 + 3] = sum / count;
                     }
                 }
             }
@@ -1466,21 +1477,11 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                     <Link href="/editor" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', textDecoration: 'none', fontSize: '13px', fontWeight: '700', padding: '6px 14px', borderRadius: '20px', border: '1px solid var(--panel-border)', background: 'rgba(255,255,255,0.03)', transition: 'all 0.2s', cursor: 'pointer' }} className="dropdown-item-hover">
                         <span>← Dashboard</span>
                     </Link>
-                    <Link href="/editor" className="logo" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                            <rect x="2" y="2" width="28" height="28" rx="6" stroke="url(#logoGrad)" strokeWidth="2.5" fill="none"/>
-                            <rect x="7" y="7" width="8" height="8" rx="2" fill="url(#logoGrad)" opacity="0.6"/>
-                            <rect x="17" y="7" width="8" height="8" rx="2" fill="url(#logoGrad)" opacity="0.4"/>
-                            <rect x="7" y="17" width="8" height="8" rx="2" fill="url(#logoGrad)" opacity="0.4"/>
-                            <rect x="17" y="17" width="8" height="8" rx="2" fill="url(#logoGrad)" opacity="0.6"/>
-                            <defs>
-                                <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32">
-                                    <stop offset="0%" stopColor="#a78bfa"/>
-                                    <stop offset="100%" stopColor="#06b6d4"/>
-                                </linearGradient>
-                            </defs>
-                        </svg>
-                        <span className="logo-text">FrameCut</span>
+                    <Link href="/editor" className="logo" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+                        <span style={{ textTransform: 'uppercase', letterSpacing: '0.04em', display: 'inline-flex', alignItems: 'center', fontSize: '20px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                            <strong style={{ fontWeight: '900', color: '#f1f5f9' }}>FRAME</strong>
+                            <span style={{ fontWeight: '300', color: '#64748b' }}>CUT</span>
+                        </span>
                     </Link>
                     <p className="tagline" style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>Auto-detect & transparentize frame slots</p>
                 </div>
@@ -2075,7 +2076,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                         <div className="canvas-area" style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
                             {activeTool === 'bulk-editor' ? (
                                 <div className="bulk-editor-workspace" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', position: 'relative', zIndex: 1 }}>
-                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'radial-gradient(rgba(9, 9, 11, 0.05) 2px, transparent 2px)', backgroundSize: '24px 24px' }}></div>
+                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'conic-gradient(#f1f5f9 0.25turn, #ffffff 0.25turn 0.5turn, #f1f5f9 0.5turn 0.75turn, #ffffff 0.75turn)', backgroundSize: '20px 20px' }}></div>
                                     <div className="upload-zone" style={{ zIndex: 1, maxWidth: '500px' }} onClick={() => document.getElementById('bulk-files-selector')?.click()}>
                                         <div className="upload-icon">⚡</div>
                                         <h2 className="upload-title">Bulk Image Editor</h2>
@@ -2099,7 +2100,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                                 </div>
                             ) : activeTool === 'ai-generator' && !imageLoaded ? (
                                 <div className="ai-workspace-start" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', position: 'relative', zIndex: 1 }}>
-                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'radial-gradient(rgba(9, 9, 11, 0.05) 2px, transparent 2px)', backgroundSize: '24px 24px' }}></div>
+                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'conic-gradient(#f1f5f9 0.25turn, #ffffff 0.25turn 0.5turn, #f1f5f9 0.5turn 0.75turn, #ffffff 0.75turn)', backgroundSize: '20px 20px' }}></div>
                                     <div style={{ zIndex: 1, textAlign: 'center', maxWidth: '500px' }}>
                                         <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎨</div>
                                         <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', color: 'var(--text-primary)' }}>AI Image Creator</h2>
@@ -2110,7 +2111,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                                 </div>
                             ) : activeTool === 'ai-video' && !generatedVideoUrl ? (
                                 <div className="ai-workspace-start" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', position: 'relative', zIndex: 1 }}>
-                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'radial-gradient(rgba(9, 9, 11, 0.05) 2px, transparent 2px)', backgroundSize: '24px 24px' }}></div>
+                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'conic-gradient(#f1f5f9 0.25turn, #ffffff 0.25turn 0.5turn, #f1f5f9 0.5turn 0.75turn, #ffffff 0.75turn)', backgroundSize: '20px 20px' }}></div>
                                     <div style={{ zIndex: 1, textAlign: 'center', maxWidth: '500px' }}>
                                         <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎬</div>
                                         <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', color: 'var(--text-primary)' }}>AI Video Motion Studio</h2>
@@ -2121,7 +2122,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                                 </div>
                             ) : activeTool === 'video-remover' && !videoSample ? (
                                 <div className="video-workspace-start" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', position: 'relative', zIndex: 1 }}>
-                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'radial-gradient(rgba(9, 9, 11, 0.05) 2px, transparent 2px)', backgroundSize: '24px 24px' }}></div>
+                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'conic-gradient(#f1f5f9 0.25turn, #ffffff 0.25turn 0.5turn, #f1f5f9 0.5turn 0.75turn, #ffffff 0.75turn)', backgroundSize: '20px 20px' }}></div>
                                     <div style={{ zIndex: 1, textAlign: 'center', maxWidth: '500px' }}>
                                         <div style={{ fontSize: '48px', marginBottom: '16px' }}>📹</div>
                                         <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', color: 'var(--text-primary)' }}>Video Background Remover</h2>
@@ -2139,7 +2140,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                                 </div>
                             ) : !imageLoaded && activeTool !== 'video-remover' ? (
                                 <div className="workspace-upload-wrapper" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', position: 'relative', zIndex: 1 }}>
-                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'radial-gradient(rgba(9, 9, 11, 0.05) 2px, transparent 2px)', backgroundSize: '24px 24px' }}></div>
+                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'conic-gradient(#f1f5f9 0.25turn, #ffffff 0.25turn 0.5turn, #f1f5f9 0.5turn 0.75turn, #ffffff 0.75turn)', backgroundSize: '20px 20px' }}></div>
                                     <div 
                                         className="upload-zone"
                                         style={{ zIndex: 1 }}
@@ -2209,7 +2210,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                                         onMouseLeave={() => setLoupe(l => ({ ...l, visible: false }))}
                                         style={{ flex: 1, position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                     >
-                                        <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'radial-gradient(rgba(9, 9, 11, 0.05) 2px, transparent 2px)', backgroundSize: '24px 24px' }}></div>
+                                        <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'conic-gradient(#f1f5f9 0.25turn, #ffffff 0.25turn 0.5turn, #f1f5f9 0.5turn 0.75turn, #ffffff 0.75turn)', backgroundSize: '20px 20px' }}></div>
                                         
                                         <div 
                                             className="canvas-container"

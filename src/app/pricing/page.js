@@ -97,19 +97,11 @@ export default function Pricing() {
             {/* Header */}
             <header className="navbar">
                 <div className="nav-container">
-                    <Link href="/" className="logo">
-                        <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-                            <rect x="2" y="2" width="28" height="28" rx="6" stroke="url(#navLogo)" strokeWidth="2.5" fill="none"/>
-                            <rect x="7" y="7" width="8" height="8" rx="2" fill="url(#navLogo)" opacity="0.6"/>
-                            <rect x="17" y="17" width="8" height="8" rx="2" fill="url(#navLogo)" opacity="0.6"/>
-                            <defs>
-                                <linearGradient id="navLogo" x1="0" y1="0" x2="32" y2="32">
-                                    <stop offset="0%" stopColor="#a78bfa"/>
-                                    <stop offset="100%" stopColor="#06b6d4"/>
-                                </linearGradient>
-                            </defs>
-                        </svg>
-                        <span className="logo-text">FrameCut</span>
+                    <Link href="/" className="logo" style={{ textDecoration: 'none' }}>
+                        <span style={{ textTransform: 'uppercase', letterSpacing: '0.04em', display: 'inline-flex', alignItems: 'center', fontSize: '20px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                            <strong style={{ fontWeight: '900', color: '#475569' }}>FRAME</strong>
+                            <span style={{ fontWeight: '300', color: '#94a3b8' }}>CUT</span>
+                        </span>
                     </Link>
                     <nav className="nav-links">
                         <Link href="/#features" className="nav-link">Features</Link>
@@ -307,8 +299,11 @@ export default function Pricing() {
             <footer className="footer">
                 <div className="footer-container">
                     <div className="footer-brand">
-                        <Link href="/" className="logo">
-                            <span className="logo-text">FrameCut</span>
+                        <Link href="/" className="logo" style={{ textDecoration: 'none' }}>
+                            <span style={{ textTransform: 'uppercase', letterSpacing: '0.04em', display: 'inline-flex', alignItems: 'center', fontSize: '20px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                                <strong style={{ fontWeight: '900', color: '#475569' }}>FRAME</strong>
+                                <span style={{ fontWeight: '300', color: '#94a3b8' }}>CUT</span>
+                            </span>
                         </Link>
                         <p className="footer-desc">Cutting-edge background removal for digital creators and templates.</p>
                     </div>

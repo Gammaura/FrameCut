@@ -69,21 +69,11 @@ export default function Home() {
             {/* Navigation Header */}
             <header className="navbar">
                 <div class="nav-container">
-                    <Link href="/" className="logo">
-                        <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-                            <rect x="2" y="2" width="28" height="28" rx="6" stroke="url(#navLogoGrad)" stroke-width="2.5" fill="none"/>
-                            <rect x="7" y="7" width="8" height="8" rx="2" fill="url(#navLogoGrad)" opacity="0.6"/>
-                            <rect x="17" y="7" width="8" height="8" rx="2" fill="url(#navLogoGrad)" opacity="0.4"/>
-                            <rect x="7" y="17" width="8" height="8" rx="2" fill="url(#navLogoGrad)" opacity="0.4"/>
-                            <rect x="17" y="17" width="8" height="8" rx="2" fill="url(#navLogoGrad)" opacity="0.6"/>
-                            <defs>
-                                <linearGradient id="navLogoGrad" x1="0" y1="0" x2="32" y2="32">
-                                    <stop offset="0%" stop-color="#a78bfa"/>
-                                    <stop offset="100%" stop-color="#06b6d4"/>
-                                </linearGradient>
-                            </defs>
-                        </svg>
-                        <span className="logo-text">FrameCut</span>
+                    <Link href="/" className="logo" style={{ textDecoration: 'none' }}>
+                        <span style={{ textTransform: 'uppercase', letterSpacing: '0.04em', display: 'inline-flex', alignItems: 'center', fontSize: '20px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                            <strong style={{ fontWeight: '900', color: '#475569' }}>FRAME</strong>
+                            <span style={{ fontWeight: '300', color: '#94a3b8' }}>CUT</span>
+                        </span>
                     </Link>
                     <nav className="nav-links">
                         <a href="#features" className="nav-link">Features</a>
@@ -398,21 +388,11 @@ export default function Home() {
             {/* Footer Section */}
             <footer className="footer">
                 <div className="footer-container">
-                    <Link href="/" className="footer-logo">
-                        <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
-                            <rect x="2" y="2" width="28" height="28" rx="6" stroke="url(#footLogoGrad)" stroke-width="2.5" fill="none"/>
-                            <rect x="7" y="7" width="8" height="8" rx="2" fill="url(#footLogoGrad)" opacity="0.6"/>
-                            <rect x="17" y="7" width="8" height="8" rx="2" fill="url(#footLogoGrad)" opacity="0.4"/>
-                            <rect x="7" y="17" width="8" height="8" rx="2" fill="url(#footLogoGrad)" opacity="0.4"/>
-                            <rect x="17" y="17" width="8" height="8" rx="2" fill="url(#footLogoGrad)" opacity="0.6"/>
-                            <defs>
-                                <linearGradient id="footLogoGrad" x1="0" y1="0" x2="32" y2="32">
-                                    <stop offset="0%" stop-color="#a78bfa"/>
-                                    <stop offset="100%" stop-color="#06b6d4"/>
-                                </linearGradient>
-                            </defs>
-                        </svg>
-                        <span className="logo-text">FrameCut</span>
+                    <Link href="/" className="footer-logo" style={{ textDecoration: 'none' }}>
+                        <span style={{ textTransform: 'uppercase', letterSpacing: '0.04em', display: 'inline-flex', alignItems: 'center', fontSize: '20px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                            <strong style={{ fontWeight: '900', color: '#475569' }}>FRAME</strong>
+                            <span style={{ fontWeight: '300', color: '#94a3b8' }}>CUT</span>
+                        </span>
                     </Link>
                     <p className="footer-copyright">© 2026 FrameCut. Built by Gammaura.</p>
                 </div>
