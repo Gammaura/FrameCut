@@ -149,6 +149,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
     };
 
     // 1. Background Remover
+    const [bgRemovalMode, setBgRemovalMode] = useState('ai'); // 'ai' | 'chroma'
     const [tolerance, setTolerance] = useState(35);
     const [softness, setSoftness] = useState(2);
     const [contiguous, setContiguous] = useState(true);
@@ -829,6 +830,144 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
             setProcessing({ visible: false, progress: 0 });
             showToast('Transparency applied successfully!', 'success');
         }, 300);
+    };
+
+    // Dynamic library loader helper
+    const loadScript = (src) => {
+        return new Promise((resolve, reject) => {
+            if (typeof window !== 'undefined' && window.SelfieSegmentation) {
+                resolve();
+                return;
+            }
+            const script = document.createElement('script');
+            script.src = src;
+            script.crossOrigin = 'anonymous';
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
+            document.head.appendChild(script);
+        });
+    };
+
+    // AI Automatic Background Removal
+    const applyAiAutoCutout = async () => {
+        if (!originalImage || !originalImageData) return;
+        setProcessing({ visible: true, progress: 20, title: 'Loading AI Model...' });
+        
+        try {
+            await loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js');
+            
+            setProcessing({ visible: true, progress: 45, title: 'Initializing AI detector...' });
+            
+            const selfieSegmentation = new window.SelfieSegmentation({
+                locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`
+            });
+            
+            selfieSegmentation.setOptions({
+                modelSelection: 1, // General model (highly accurate)
+            });
+            
+            let cutoutResult = null;
+            
+            selfieSegmentation.onResults((results) => {
+                const w = originalImageData.width;
+                const h = originalImageData.height;
+                
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = w;
+                tempCanvas.height = h;
+                const tempCtx = tempCanvas.getContext('2d');
+                
+                tempCtx.drawImage(results.segmentationMask, 0, 0, w, h);
+                const maskData = tempCtx.getImageData(0, 0, w, h).data;
+                
+                const outCanvas = document.createElement('canvas');
+                outCanvas.width = w;
+                outCanvas.height = h;
+                const outCtx = outCanvas.getContext('2d');
+                outCtx.drawImage(originalImage, 0, 0, w, h);
+                const outImageData = outCtx.getImageData(0, 0, w, h);
+                const oData = outImageData.data;
+                
+                for (let i = 0; i < maskData.length; i += 4) {
+                    const maskVal = maskData[i]; 
+                    oData[i + 3] = Math.round((oData[i + 3] * maskVal) / 255);
+                }
+                
+                if (softness > 0) {
+                    const alpha = new Uint8Array(w * h);
+                    for (let i = 0; i < w * h; i++) {
+                        alpha[i] = oData[i * 4 + 3];
+                    }
+                    const radius = Math.min(12, softness);
+                    const tempAlpha = new Uint8Array(w * h);
+                    
+                    for (let y = 0; y < h; y++) {
+                        for (let x = 0; x < w; x++) {
+                            let sum = 0;
+                            let count = 0;
+                            for (let dx = -radius; dx <= radius; dx++) {
+                                const nx = x + dx;
+                                if (nx >= 0 && nx < w) {
+                                    sum += alpha[y * w + nx];
+                                    count++;
+                                }
+                            }
+                            tempAlpha[y * w + x] = sum / count;
+                        }
+                    }
+                    
+                    for (let y = 0; y < h; y++) {
+                        for (let x = 0; x < w; x++) {
+                            let sum = 0;
+                            let count = 0;
+                            for (let dy = -radius; dy <= radius; dy++) {
+                                const ny = y + dy;
+                                if (ny >= 0 && ny < h) {
+                                    sum += tempAlpha[ny * w + x];
+                                    count++;
+                                }
+                            }
+                            oData[(y * w + x) * 4 + 3] = sum / count;
+                        }
+                    }
+                }
+                
+                outCtx.putImageData(outImageData, 0, 0);
+                cutoutResult = outImageData;
+            });
+            
+            const imgElement = new Image();
+            imgElement.src = originalImage.src;
+            await new Promise((resolve) => {
+                imgElement.onload = resolve;
+            });
+            
+            setProcessing({ visible: true, progress: 70, title: 'Segmenting foreground...' });
+            await selfieSegmentation.send({ image: imgElement });
+            
+            let attempts = 0;
+            while (!cutoutResult && attempts < 100) {
+                await new Promise(r => setTimeout(r, 50));
+                attempts++;
+            }
+            
+            if (cutoutResult) {
+                setResultImageData(cutoutResult);
+                setCurrentView('result');
+                setProcessing({ visible: false, progress: 0 });
+                showToast('AI Background removed successfully!', 'success');
+            } else {
+                throw new Error('AI processing timed out');
+            }
+            
+            selfieSegmentation.close();
+            
+        } catch (err) {
+            console.error(err);
+            setProcessing({ visible: false, progress: 0 });
+            showToast('AI cutout failed. Using color key fallback.', 'warning');
+            applyTransparency();
+        }
     };
 
     // ==========================================
@@ -1627,38 +1766,101 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                             {activeTool === 'bg-remover' && (
                                 <>
                                     <h3 className="panel-title">Remove Background</h3>
-                                    <div className="control-group">
-                                        <label className="control-label">Target Color</label>
-                                        <p className="control-hint">Click on screen to pick color</p>
-                                        <div className="color-display">
-                                            <div className="color-swatch" style={{ background: rgbToHex(targetColor.r, targetColor.g, targetColor.b) }} onClick={() => document.getElementById('color-picker-rem')?.click()}></div>
-                                            <span className="color-hex">{rgbToHex(targetColor.r, targetColor.g, targetColor.b).toUpperCase()}</span>
-                                            <input type="color" id="color-picker-rem" style={{ display: 'none' }} value={rgbToHex(targetColor.r, targetColor.g, targetColor.b)} onChange={(e) => {
-                                                const hex = e.target.value;
-                                                setTargetColor({
-                                                    r: parseInt(hex.slice(1, 3), 16),
-                                                    g: parseInt(hex.slice(3, 5), 16),
-                                                    b: parseInt(hex.slice(5, 7), 16)
-                                                });
-                                            }} />
-                                        </div>
-                                        <button className="editor-btn editor-btn-outline editor-btn-sm" onClick={() => autoDetectColor()} style={{ width: '100%', marginTop: '8px' }}>Auto Detect Color</button>
+                                    
+                                    {/* Mode Selector */}
+                                    <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px', padding: '4px', marginBottom: '20px', border: '1px solid var(--panel-border)' }}>
+                                        <button 
+                                            onClick={() => setBgRemovalMode('ai')} 
+                                            style={{ 
+                                                flex: 1, 
+                                                padding: '8px', 
+                                                borderRadius: '6px', 
+                                                border: 'none', 
+                                                fontSize: '12px', 
+                                                fontWeight: '700', 
+                                                cursor: 'pointer', 
+                                                background: bgRemovalMode === 'ai' ? 'var(--btn-primary-bg, #3b82f6)' : 'transparent', 
+                                                color: '#fff', 
+                                                transition: 'all 0.2s' 
+                                            }}
+                                        >
+                                            ✨ AI Auto
+                                        </button>
+                                        <button 
+                                            onClick={() => setBgRemovalMode('chroma')} 
+                                            style={{ 
+                                                flex: 1, 
+                                                padding: '8px', 
+                                                borderRadius: '6px', 
+                                                border: 'none', 
+                                                fontSize: '12px', 
+                                                fontWeight: '700', 
+                                                cursor: 'pointer', 
+                                                background: bgRemovalMode === 'chroma' ? 'var(--btn-primary-bg, #3b82f6)' : 'transparent', 
+                                                color: bgRemovalMode === 'chroma' ? '#fff' : 'var(--text-muted)', 
+                                                transition: 'all 0.2s' 
+                                            }}
+                                        >
+                                            🎨 Chroma Key
+                                        </button>
                                     </div>
-                                    <div className="control-group">
-                                        <label className="control-label">Tolerance: <span className="control-value">{tolerance}</span></label>
-                                        <input type="range" className="slider" min="1" max="100" value={tolerance} onChange={(e) => setTolerance(parseInt(e.target.value))} />
-                                    </div>
-                                    <div className="control-group">
-                                        <label className="control-label">Edge Softness: <span className="control-value">{softness}</span></label>
-                                        <input type="range" className="slider" min="0" max="10" value={softness} onChange={(e) => setSoftness(parseInt(e.target.value))} />
-                                    </div>
-                                    <div className="control-group">
-                                        <label className="control-label checkbox-label">
-                                            <input type="checkbox" checked={contiguous} onChange={(e) => setContiguous(e.target.checked)} />
-                                            <span className="checkbox-custom"></span> Contiguous Fill
-                                        </label>
-                                    </div>
-                                    <button className="editor-btn editor-btn-primary" onClick={applyTransparency} disabled={!imageLoaded} style={{ width: '100%', marginTop: '16px' }}>Apply Cutout</button>
+
+                                    {bgRemovalMode === 'ai' ? (
+                                        <>
+                                            <div className="control-group" style={{ marginBottom: '16px', background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.1)', borderRadius: '8px', padding: '12px' }}>
+                                                <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.5' }}>
+                                                    <strong>Automatic Saliency Detection:</strong> Our browser-side AI will analyze the photo, segment the main foreground subject (person/object), and remove the background seamlessly.
+                                                </p>
+                                            </div>
+                                            <div className="control-group">
+                                                <label className="control-label">Edge Softness: <span className="control-value">{softness}</span></label>
+                                                <input type="range" className="slider" min="0" max="10" value={softness} onChange={(e) => setSoftness(parseInt(e.target.value))} />
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="control-group">
+                                                <label className="control-label">Target Color</label>
+                                                <p className="control-hint">Click on screen to pick color</p>
+                                                <div className="color-display">
+                                                    <div className="color-swatch" style={{ background: rgbToHex(targetColor.r, targetColor.g, targetColor.b) }} onClick={() => document.getElementById('color-picker-rem')?.click()}></div>
+                                                    <span className="color-hex">{rgbToHex(targetColor.r, targetColor.g, targetColor.b).toUpperCase()}</span>
+                                                    <input type="color" id="color-picker-rem" style={{ display: 'none' }} value={rgbToHex(targetColor.r, targetColor.g, targetColor.b)} onChange={(e) => {
+                                                        const hex = e.target.value;
+                                                        setTargetColor({
+                                                            r: parseInt(hex.slice(1, 3), 16),
+                                                            g: parseInt(hex.slice(3, 5), 16),
+                                                            b: parseInt(hex.slice(5, 7), 16)
+                                                        });
+                                                    }} />
+                                                </div>
+                                                <button className="editor-btn editor-btn-outline editor-btn-sm" onClick={() => autoDetectColor()} style={{ width: '100%', marginTop: '8px' }}>Auto Detect Color</button>
+                                            </div>
+                                            <div className="control-group">
+                                                <label className="control-label">Tolerance: <span className="control-value">{tolerance}</span></label>
+                                                <input type="range" className="slider" min="1" max="100" value={tolerance} onChange={(e) => setTolerance(parseInt(e.target.value))} />
+                                            </div>
+                                            <div className="control-group">
+                                                <label className="control-label">Edge Softness: <span className="control-value">{softness}</span></label>
+                                                <input type="range" className="slider" min="0" max="10" value={softness} onChange={(e) => setSoftness(parseInt(e.target.value))} />
+                                            </div>
+                                            <div className="control-group">
+                                                <label className="control-label checkbox-label">
+                                                    <input type="checkbox" checked={contiguous} onChange={(e) => setContiguous(e.target.checked)} />
+                                                    <span className="checkbox-custom"></span> Contiguous Fill
+                                                </label>
+                                            </div>
+                                        </>
+                                    )}
+
+                                    <button 
+                                        className="editor-btn editor-btn-primary" 
+                                        onClick={bgRemovalMode === 'ai' ? applyAiAutoCutout : applyTransparency} 
+                                        disabled={!imageLoaded} 
+                                        style={{ width: '100%', marginTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                                    >
+                                        {bgRemovalMode === 'ai' ? '✨ Remove Background' : 'Apply Cutout'}
+                                    </button>
                                 </>
                             )}
 
