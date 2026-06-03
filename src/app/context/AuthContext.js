@@ -69,6 +69,15 @@ export function AuthProvider({ children }) {
                             
                             setUser(googleUser);
                             localStorage.setItem('framecut_user', JSON.stringify(googleUser));
+
+                            // Redirect back to page where OAuth was triggered
+                            const redirectBack = localStorage.getItem('google_auth_redirect_back');
+                            if (redirectBack && redirectBack !== '/' && redirectBack !== window.location.pathname) {
+                                localStorage.removeItem('google_auth_redirect_back');
+                                window.location.href = window.location.origin + redirectBack;
+                            } else {
+                                localStorage.removeItem('google_auth_redirect_back');
+                            }
                         }
                     })
                     .catch(err => console.error("Error calling Google UserInfo endpoint:", err));
@@ -126,7 +135,11 @@ export function AuthProvider({ children }) {
         localStorage.setItem('framecut_google_client_id', targetClientId);
         setGoogleClientId(targetClientId);
 
-        const redirectUri = window.location.origin + window.location.pathname;
+        // Store active page path so we return to it after callback
+        localStorage.setItem('google_auth_redirect_back', window.location.pathname);
+
+        // Standardize redirect URI to home origin root with trailing slash
+        const redirectUri = window.location.origin + '/';
         const scope = encodeURIComponent('https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email');
         const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${targetClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${scope}&include_granted_scopes=true&state=google-oauth`;
         
