@@ -1357,643 +1357,698 @@ export default function Editor() {
             </header>
 
             <main className="app-main" style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-                {/* Upload Landing View */}
-                {!imageLoaded && activeTool !== 'video-remover' && (
-                    <section className="section upload-section">
-                        <div 
-                            className="upload-zone"
-                            onClick={() => fileInputRef.current?.click()}
-                            onDragOver={(e) => {
-                                e.preventDefault();
-                                e.currentTarget.classList.add('drag-over');
-                            }}
-                            onDragLeave={(e) => {
-                                e.currentTarget.classList.remove('drag-over');
-                            }}
-                            onDrop={(e) => {
-                                e.preventDefault();
-                                e.currentTarget.classList.remove('drag-over');
-                                const file = e.dataTransfer.files[0];
-                                if (file) loadImage(file);
-                            }}
-                        >
-                            <div className="upload-icon">
-                                <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-                                    <path d="M32 8L32 40" stroke="url(#upGrad)" strokeWidth="3" strokeLinecap="round"/>
-                                    <path d="M20 20L32 8L44 20" stroke="url(#upGrad)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-                                    <path d="M8 40V48C8 52.4183 11.5817 56 16 56H48C52.4183 56 56 52.4183 56 48V40" stroke="url(#upGrad)" strokeWidth="3" strokeLinecap="round"/>
-                                    <defs>
-                                        <linearGradient id="upGrad" x1="32" y1="8" x2="32" y2="56">
-                                            <stop offset="0%" stopColor="#a78bfa"/>
-                                            <stop offset="100%" stopColor="#06b6d4"/>
-                                        </linearGradient>
-                                    </defs>
-                                </svg>
-                            </div>
-                            <h2 className="upload-title">Drop your image here</h2>
-                            <p className="upload-desc">or click to browse • PNG format supported</p>
-                            <input 
-                                type="file" 
-                                ref={fileInputRef} 
-                                onChange={handleFileChange} 
-                                accept="image/png" 
-                                hidden 
-                            />
+                <section className="section editor-section" style={{ display: 'flex', width: '100%', height: '100%', overflow: 'hidden' }}>
+                    <div className="editor-layout" style={{ display: 'flex', width: '100%', height: '100%', width: '100%' }}>
+                        
+                        {/* LEFT TOOLBAR (15 TOOLS SELECTOR) */}
+                        <div className="editor-toolbar">
+                            <button className={`toolbar-btn ${activeTool === 'bg-remover' ? 'active' : ''}`} onClick={() => setActiveTool('bg-remover')}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M20 20H4v-1.5A2.5 2.5 0 0 1 6.5 16h11A2.5 2.5 0 0 1 20 18.5V20z"/><path d="M12 2v11M8 6l4-4 4 4"/></svg>
+                                <span className="tooltip">BG Remover</span>
+                            </button>
+                            <button className={`toolbar-btn ${activeTool === 'upscaler' ? 'active' : ''}`} onClick={() => setActiveTool('upscaler')}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="m15 18 3 3 3-3M21 21v-6M9 6 6 3 3 6M3 3v6"/></svg>
+                                <span className="tooltip">Image Upscaler</span>
+                            </button>
+                            <button className={`toolbar-btn ${activeTool === 'video-remover' ? 'active' : ''}`} onClick={() => setActiveTool('video-remover')}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M23 7a2 2 0 0 0-2.45-1.45L16 7V5a2 2 0 0 0-2-2H2a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2l4.55 1.45A2 2 0 0 0 23 17V7z"/></svg>
+                                <span className="tooltip">Video BG Remover</span>
+                            </button>
+                            <button className={`toolbar-btn ${activeTool === 'change-bg' ? 'active' : ''}`} onClick={() => setActiveTool('change-bg')}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+                                <span className="tooltip">Change BG</span>
+                            </button>
+                            <button className={`toolbar-btn ${activeTool === 'magic-eraser' ? 'active' : ''}`} onClick={() => setActiveTool('magic-eraser')}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="m12 3-1.912 5.886L5 9l5.088 1.114L12 16l1.912-5.886L19 9l-5.088-1.114L12 3z"/></svg>
+                                <span className="tooltip">Magic Eraser</span>
+                            </button>
+                            <button className={`toolbar-btn ${activeTool === 'ai-generator' ? 'active' : ''}`} onClick={() => setActiveTool('ai-generator')}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 2a10 10 0 0 0-7.75 16.3l.08.1a9.96 9.96 0 0 0 15.34 0l.08-.1A10 10 0 0 0 12 2z"/><circle cx="12" cy="10" r="3"/></svg>
+                                <span className="tooltip">AI Image Generator</span>
+                            </button>
+                            <button className={`toolbar-btn ${activeTool === 'ai-video' ? 'active' : ''}`} onClick={() => setActiveTool('ai-video')}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="2" y="2" width="20" height="20" rx="2.18"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5"/></svg>
+                                <span className="tooltip">AI Video Generator</span>
+                            </button>
+                            <button className={`toolbar-btn ${activeTool === 'generative-fill' ? 'active' : ''}`} onClick={() => setActiveTool('generative-fill')}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 2v20M2 12h20"/><rect x="5" y="5" width="14" height="14" rx="2" strokeDasharray="3 3"/></svg>
+                                <span className="tooltip">Generative Fill</span>
+                            </button>
+                            <button className={`toolbar-btn ${activeTool === 'uncrop' ? 'active' : ''}`} onClick={() => setActiveTool('uncrop')}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M21 3H3v18h18V3zM7 7h10v10H7V7z"/></svg>
+                                <span className="tooltip">Uncrop (AI Expand)</span>
+                            </button>
+                            <button className={`toolbar-btn ${activeTool === 'ai-ads' ? 'active' : ''}`} onClick={() => setActiveTool('ai-ads')}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M6 12h12M6 8h12M6 16h12"/></svg>
+                                <span className="tooltip">AI Ads Creator</span>
+                            </button>
+                            <button className={`toolbar-btn ${activeTool === 'bulk-editor' ? 'active' : ''}`} onClick={() => setActiveTool('bulk-editor')}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="3" y="3" width="13" height="13" rx="2"/><rect x="8" y="8" width="13" height="13" rx="2" fill="none"/></svg>
+                                <span className="tooltip">Bulk Editor</span>
+                            </button>
+                            <button className={`toolbar-btn ${activeTool === 'adjustments' ? 'active' : ''}`} onClick={() => setActiveTool('adjustments')}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+                                <span className="tooltip">Adjustments</span>
+                            </button>
+                            <button className={`toolbar-btn ${activeTool === 'text-overlay' ? 'active' : ''}`} onClick={() => setActiveTool('text-overlay')}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+                                <span className="tooltip">Text & Overlay</span>
+                            </button>
+                            <button className={`toolbar-btn ${activeTool === 'crop-rotate' ? 'active' : ''}`} onClick={() => setActiveTool('crop-rotate')}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M21 17a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H10a2 2 0 0 0-2 2v1H3a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h1v4h12v-4h5z"/></svg>
+                                <span className="tooltip">Rotate & Crop</span>
+                            </button>
+                            <button className={`toolbar-btn ${activeTool === 'brush-draw' ? 'active' : ''}`} onClick={() => setActiveTool('brush-draw')}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M18 22H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h15a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1zM21 4h1a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-1"/></svg>
+                                <span className="tooltip">Doodle Brush</span>
+                            </button>
                         </div>
-                    </section>
-                )}
 
-                {/* Main Interactive Studio Layout */}
-                {(imageLoaded || activeTool === 'video-remover') && (
-                    <section className="section editor-section" style={{ display: 'flex', width: '100%', height: '100%', overflow: 'hidden' }}>
-                        <div className="editor-layout" style={{ display: 'flex', width: '100%', height: '100%' }}>
-                            
-                            {/* LEFT TOOLBAR (15 TOOLS SELECTOR) */}
-                            <div className="editor-toolbar">
-                                <button className={`toolbar-btn ${activeTool === 'bg-remover' ? 'active' : ''}`} onClick={() => setActiveTool('bg-remover')}>
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M20 20H4v-1.5A2.5 2.5 0 0 1 6.5 16h11A2.5 2.5 0 0 1 20 18.5V20z"/><path d="M12 2v11M8 6l4-4 4 4"/></svg>
-                                    <span className="tooltip">BG Remover</span>
-                                </button>
-                                <button className={`toolbar-btn ${activeTool === 'upscaler' ? 'active' : ''}`} onClick={() => setActiveTool('upscaler')}>
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="m15 18 3 3 3-3M21 21v-6M9 6 6 3 3 6M3 3v6"/></svg>
-                                    <span className="tooltip">Image Upscaler</span>
-                                </button>
-                                <button className={`toolbar-btn ${activeTool === 'video-remover' ? 'active' : ''}`} onClick={() => setActiveTool('video-remover')}>
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M23 7a2 2 0 0 0-2.45-1.45L16 7V5a2 2 0 0 0-2-2H2a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2l4.55 1.45A2 2 0 0 0 23 17V7z"/></svg>
-                                    <span className="tooltip">Video BG Remover</span>
-                                </button>
-                                <button className={`toolbar-btn ${activeTool === 'change-bg' ? 'active' : ''}`} onClick={() => setActiveTool('change-bg')}>
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-                                    <span className="tooltip">Change BG</span>
-                                </button>
-                                <button className={`toolbar-btn ${activeTool === 'magic-eraser' ? 'active' : ''}`} onClick={() => setActiveTool('magic-eraser')}>
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="m12 3-1.912 5.886L5 9l5.088 1.114L12 16l1.912-5.886L19 9l-5.088-1.114L12 3z"/></svg>
-                                    <span className="tooltip">Magic Eraser</span>
-                                </button>
-                                <button className={`toolbar-btn ${activeTool === 'ai-generator' ? 'active' : ''}`} onClick={() => setActiveTool('ai-generator')}>
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 2a10 10 0 0 0-7.75 16.3l.08.1a9.96 9.96 0 0 0 15.34 0l.08-.1A10 10 0 0 0 12 2z"/><circle cx="12" cy="10" r="3"/></svg>
-                                    <span className="tooltip">AI Image Generator</span>
-                                </button>
-                                <button className={`toolbar-btn ${activeTool === 'ai-video' ? 'active' : ''}`} onClick={() => setActiveTool('ai-video')}>
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="2" y="2" width="20" height="20" rx="2.18"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5"/></svg>
-                                    <span className="tooltip">AI Video Generator</span>
-                                </button>
-                                <button className={`toolbar-btn ${activeTool === 'generative-fill' ? 'active' : ''}`} onClick={() => setActiveTool('generative-fill')}>
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 2v20M2 12h20"/><rect x="5" y="5" width="14" height="14" rx="2" strokeDasharray="3 3"/></svg>
-                                    <span className="tooltip">Generative Fill</span>
-                                </button>
-                                <button className={`toolbar-btn ${activeTool === 'uncrop' ? 'active' : ''}`} onClick={() => setActiveTool('uncrop')}>
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M21 3H3v18h18V3zM7 7h10v10H7V7z"/></svg>
-                                    <span className="tooltip">Uncrop (AI Expand)</span>
-                                </button>
-                                <button className={`toolbar-btn ${activeTool === 'ai-ads' ? 'active' : ''}`} onClick={() => setActiveTool('ai-ads')}>
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M6 12h12M6 8h12M6 16h12"/></svg>
-                                    <span className="tooltip">AI Ads Creator</span>
-                                </button>
-                                <button className={`toolbar-btn ${activeTool === 'bulk-editor' ? 'active' : ''}`} onClick={() => setActiveTool('bulk-editor')}>
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="3" y="3" width="13" height="13" rx="2"/><rect x="8" y="8" width="13" height="13" rx="2" fill="none"/></svg>
-                                    <span className="tooltip">Bulk Editor</span>
-                                </button>
-                                <button className={`toolbar-btn ${activeTool === 'adjustments' ? 'active' : ''}`} onClick={() => setActiveTool('adjustments')}>
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
-                                    <span className="tooltip">Adjustments</span>
-                                </button>
-                                <button className={`toolbar-btn ${activeTool === 'text-overlay' ? 'active' : ''}`} onClick={() => setActiveTool('text-overlay')}>
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
-                                    <span className="tooltip">Text & Overlay</span>
-                                </button>
-                                <button className={`toolbar-btn ${activeTool === 'crop-rotate' ? 'active' : ''}`} onClick={() => setActiveTool('crop-rotate')}>
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M21 17a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H10a2 2 0 0 0-2 2v1H3a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h1v4h12v-4h5z"/></svg>
-                                    <span className="tooltip">Rotate & Crop</span>
-                                </button>
-                                <button className={`toolbar-btn ${activeTool === 'brush-draw' ? 'active' : ''}`} onClick={() => setActiveTool('brush-draw')}>
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M18 22H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h15a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1zM21 4h1a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-1"/></svg>
-                                    <span className="tooltip">Doodle Brush</span>
-                                </button>
-                            </div>
-
-                            {/* CONTROLS SIDEBAR COLUMN */}
-                            <div className="controls-panel glass-panel" style={{ width: '300px', display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
-                                
-                                {/* 1. Background Remover Controls */}
-                                {activeTool === 'bg-remover' && (
-                                    <>
-                                        <h3 className="panel-title">Remove Background</h3>
-                                        <div className="control-group">
-                                            <label className="control-label">Target Color</label>
-                                            <p className="control-hint">Click on screen to pick color</p>
-                                            <div className="color-display">
-                                                <div className="color-swatch" style={{ background: rgbToHex(targetColor.r, targetColor.g, targetColor.b) }} onClick={() => document.getElementById('color-picker-rem')?.click()}></div>
-                                                <span className="color-hex">{rgbToHex(targetColor.r, targetColor.g, targetColor.b).toUpperCase()}</span>
-                                                <input type="color" id="color-picker-rem" style={{ display: 'none' }} value={rgbToHex(targetColor.r, targetColor.g, targetColor.b)} onChange={(e) => {
-                                                    const hex = e.target.value;
-                                                    setTargetColor({
-                                                        r: parseInt(hex.slice(1, 3), 16),
-                                                        g: parseInt(hex.slice(3, 5), 16),
-                                                        b: parseInt(hex.slice(5, 7), 16)
-                                                    });
-                                                }} />
-                                            </div>
-                                            <button className="editor-btn editor-btn-outline editor-btn-sm" onClick={() => autoDetectColor()} style={{ width: '100%', marginTop: '8px' }}>Auto Detect Color</button>
-                                        </div>
-                                        <div className="control-group">
-                                            <label className="control-label">Tolerance: <span className="control-value">{tolerance}</span></label>
-                                            <input type="range" className="slider" min="1" max="100" value={tolerance} onChange={(e) => setTolerance(parseInt(e.target.value))} />
-                                        </div>
-                                        <div className="control-group">
-                                            <label className="control-label">Edge Softness: <span className="control-value">{softness}</span></label>
-                                            <input type="range" className="slider" min="0" max="10" value={softness} onChange={(e) => setSoftness(parseInt(e.target.value))} />
-                                        </div>
-                                        <div className="control-group">
-                                            <label className="control-label checkbox-label">
-                                                <input type="checkbox" checked={contiguous} onChange={(e) => setContiguous(e.target.checked)} />
-                                                <span className="checkbox-custom"></span> Contiguous Fill
-                                            </label>
-                                        </div>
-                                        <button className="editor-btn editor-btn-primary" onClick={applyTransparency} style={{ width: '100%', marginTop: '16px' }}>Apply Cutout</button>
-                                    </>
-                                )}
-
-                                {/* 2. Image Upscaler Controls */}
-                                {activeTool === 'upscaler' && (
-                                    <>
-                                        <h3 className="panel-title">AI Image Upscaler</h3>
-                                        <p className="control-hint" style={{ marginBottom: '16px' }}>Super-resolve image limits using smart sub-pixel bilinear scaling.</p>
-                                        <div className="control-group">
-                                            <label className="control-label">Upscale Factor</label>
-                                            <div className="option-card-grid">
-                                                <div className={`option-card ${upscaleFactor === 2 ? 'active' : ''}`} onClick={() => setUpscaleFactor(2)}>
-                                                    <span className="option-card-title">2x Scale</span>
-                                                </div>
-                                                <div className={`option-card ${upscaleFactor === 4 ? 'active' : ''}`} onClick={() => setUpscaleFactor(4)}>
-                                                    <span className="option-card-title">4x Scale</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <button className="editor-btn editor-btn-primary" onClick={runUpscale} style={{ width: '100%', marginTop: '16px' }}>Upscale Image</button>
-                                    </>
-                                )}
-
-                                {/* 3. Video Background Remover Controls */}
-                                {activeTool === 'video-remover' && (
-                                    <>
-                                        <h3 className="panel-title">Video BG Remover</h3>
-                                        <p className="control-hint" style={{ marginBottom: '16px' }}>Extract subject from video frames using real-time chroma subtraction keyer.</p>
-                                        <div className="control-group">
-                                            <label className="control-label">Select Sample Clip</label>
-                                            <select className="form-input" style={{ background: '#181824', border: '1px solid var(--panel-border)' }} value={videoSample} onChange={(e) => handleVideoSampleSelect(e.target.value)}>
-                                                <option value="">-- Choose Sample Video --</option>
-                                                <option value="spinning-cube">Spinning 3D Geometry</option>
-                                                <option value="cassette">Retro Rotating Cassette</option>
-                                            </select>
-                                        </div>
-                                        {videoSample && (
-                                            <>
-                                                <div className="control-group">
-                                                    <label className="control-label">Chroma Key Color</label>
-                                                    <div className="color-display">
-                                                        <div className="color-swatch" style={{ background: rgbToHex(chromaKeyColor.r, chromaKeyColor.g, chromaKeyColor.b) }} onClick={() => document.getElementById('chroma-picker')?.click()}></div>
-                                                        <span className="color-hex">{rgbToHex(chromaKeyColor.r, chromaKeyColor.g, chromaKeyColor.b).toUpperCase()}</span>
-                                                        <input type="color" id="chroma-picker" style={{ display: 'none' }} value={rgbToHex(chromaKeyColor.r, chromaKeyColor.g, chromaKeyColor.b)} onChange={(e) => {
-                                                            const hex = e.target.value;
-                                                            setChromaKeyColor({
-                                                                r: parseInt(hex.slice(1, 3), 16),
-                                                                g: parseInt(hex.slice(3, 5), 16),
-                                                                b: parseInt(hex.slice(5, 7), 16)
-                                                            });
-                                                        }} />
-                                                    </div>
-                                                </div>
-                                                <div className="control-group">
-                                                    <label className="control-label">Sensitivity: <span className="control-value">{chromaTolerance}</span></label>
-                                                    <input type="range" className="slider" min="10" max="150" value={chromaTolerance} onChange={(e) => setChromaTolerance(parseInt(e.target.value))} />
-                                                </div>
-                                                <button className="editor-btn editor-btn-outline" onClick={() => {
-                                                    if (videoPlaying) {
-                                                        videoRef.current.pause();
-                                                        setVideoPlaying(false);
-                                                    } else {
-                                                        videoRef.current.play();
-                                                        setVideoPlaying(true);
-                                                        triggerVideoRemovalLoop();
-                                                    }
-                                                }} style={{ width: '100%', marginTop: '12px' }}>
-                                                    {videoPlaying ? 'Pause Video' : 'Resume Video'}
-                                                </button>
-                                            </>
-                                        )}
-                                    </>
-                                )}
-
-                                {/* 4. Change Background Controls */}
-                                {activeTool === 'change-bg' && (
-                                    <>
-                                        <h3 className="panel-title">Change Background</h3>
-                                        <div className="control-group">
-                                            <label className="control-label">Backdrop Type</label>
-                                            <select className="form-input" style={{ background: '#181824', border: '1px solid var(--panel-border)' }} value={selectedBgType} onChange={(e) => setSelectedBgType(e.target.value)}>
-                                                <option value="color">Solid Color</option>
-                                                <option value="gradient">Linear Gradient</option>
-                                                <option value="image">Scenic Template</option>
-                                            </select>
-                                        </div>
-
-                                        {selectedBgType === 'color' && (
-                                            <div className="control-group">
-                                                <label className="control-label">Background Color</label>
-                                                <div className="color-display">
-                                                    <div className="color-swatch" style={{ background: selectedBgColor }} onClick={() => document.getElementById('bg-color-picker')?.click()}></div>
-                                                    <span className="color-hex">{selectedBgColor.toUpperCase()}</span>
-                                                    <input type="color" id="bg-color-picker" style={{ display: 'none' }} value={selectedBgColor} onChange={(e) => setSelectedBgColor(e.target.value)} />
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {selectedBgType === 'gradient' && (
-                                            <div className="control-group">
-                                                <label className="control-label">Select Gradient</label>
-                                                <div className="option-card-grid">
-                                                    <div className={`option-card ${selectedBgGradient === 'cosmic' ? 'active' : ''}`} onClick={() => setSelectedBgGradient('cosmic')}>
-                                                        <span className="option-card-title">Cosmic Cyan</span>
-                                                    </div>
-                                                    <div className={`option-card ${selectedBgGradient === 'warm' ? 'active' : ''}`} onClick={() => setSelectedBgGradient('warm')}>
-                                                        <span className="option-card-title">Warm Pink</span>
-                                                    </div>
-                                                    <div className={`option-card ${selectedBgGradient === 'neon' ? 'active' : ''}`} onClick={() => setSelectedBgGradient('neon')}>
-                                                        <span className="option-card-title">Neon Emerald</span>
-                                                    </div>
-                                                    <div className={`option-card ${selectedBgGradient === 'sunset' ? 'active' : ''}`} onClick={() => setSelectedBgGradient('sunset')}>
-                                                        <span className="option-card-title">Rose Sunset</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {selectedBgType === 'image' && (
-                                            <div className="control-group">
-                                                <label className="control-label">Studio Backdrop Templates</label>
-                                                <div className="bg-image-grid">
-                                                    <div className={`bg-image-card ${selectedBgImage === 'studio' ? 'active' : ''}`} style={{ backgroundImage: `url(https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=120&auto=format&fit=crop)` }} onClick={() => setSelectedBgImage('studio')}>
-                                                        <div className="bg-image-label">Fine Art</div>
-                                                    </div>
-                                                    <div className={`bg-image-card ${selectedBgImage === 'cafe' ? 'active' : ''}`} style={{ backgroundImage: `url(https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=120&auto=format&fit=crop)` }} onClick={() => setSelectedBgImage('cafe')}>
-                                                        <div className="bg-image-label">Cozy Cafe</div>
-                                                    </div>
-                                                    <div className={`bg-image-card ${selectedBgImage === 'showroom' ? 'active' : ''}`} style={{ backgroundImage: `url(https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=120&auto=format&fit=crop)` }} onClick={() => setSelectedBgImage('showroom')}>
-                                                        <div className="bg-image-label">Room</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </>
-                                )}
-
-                                {/* 5. Magic Eraser Controls */}
-                                {activeTool === 'magic-eraser' && (
-                                    <>
-                                        <h3 className="panel-title">Magic Eraser</h3>
-                                        <p className="control-hint" style={{ marginBottom: '16px' }}>Draw directly over objects, pixels, or defects you want to erase from canvas.</p>
-                                        <div className="control-group">
-                                            <label className="control-label">Brush Size: <span className="control-value">{eraserBrushSize}px</span></label>
-                                            <input type="range" className="slider" min="5" max="80" value={eraserBrushSize} onChange={(e) => setEraserBrushSize(parseInt(e.target.value))} />
-                                        </div>
-                                        <button className="editor-btn editor-btn-outline" onClick={() => setCurrentEraserPath([])} style={{ width: '100%' }}>Clear Brush Path</button>
-                                    </>
-                                )}
-
-                                {/* 6. AI Image Generator Controls */}
-                                {activeTool === 'ai-generator' && (
-                                    <>
-                                        <h3 className="panel-title">AI Image Generator</h3>
-                                        <div className="control-group">
-                                            <label className="control-label">Text Prompt</label>
-                                            <input type="text" className="form-input" placeholder="e.g. Luxury modern watch, studio lighting..." value={aiImagePrompt} onChange={(e) => setAiImagePrompt(e.target.value)} />
-                                        </div>
-                                        <div className="control-group">
-                                            <label className="control-label">Aesthetic Style</label>
-                                            <select className="form-input" style={{ background: '#181824', border: '1px solid var(--panel-border)' }} value={aiImageStyle} onChange={(e) => setAiImageStyle(e.target.value)}>
-                                                <option value="photorealistic">Photorealistic</option>
-                                                <option value="isometric">Isometric 3D</option>
-                                                <option value="minimalist">Minimalist Render</option>
-                                            </select>
-                                        </div>
-                                        <button className="editor-btn editor-btn-primary" onClick={runAiImageGenerator} style={{ width: '100%', marginTop: '16px' }}>Generate Template</button>
-                                    </>
-                                )}
-
-                                {/* 7. AI Video Generator Controls */}
-                                {activeTool === 'ai-video' && (
-                                    <>
-                                        <h3 className="panel-title">AI Video Generator</h3>
-                                        <div className="control-group">
-                                            <label className="control-label">Prompt for Motion</label>
-                                            <input type="text" className="form-input" placeholder="e.g. Rotating camera zoom, floating dust..." value={aiVideoPrompt} onChange={(e) => setAiVideoPrompt(e.target.value)} />
-                                        </div>
-                                        <button className="editor-btn editor-btn-primary" onClick={runAiVideoGenerator} style={{ width: '100%', marginTop: '12px' }}>Generate Motion Clip</button>
-                                        
-                                        {generatedVideoUrl && (
-                                            <div style={{ marginTop: '20px' }}>
-                                                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>PREVIEW GENERATED CLIP</span>
-                                                <video src={generatedVideoUrl} controls autoPlay loop muted width="100%" style={{ borderRadius: '12px', border: '1px solid var(--panel-border)', marginTop: '8px' }} />
-                                            </div>
-                                        )}
-                                    </>
-                                )}
-
-                                {/* 8. Generative Fill Controls */}
-                                {activeTool === 'generative-fill' && (
-                                    <>
-                                        <h3 className="panel-title">Generative Fill</h3>
-                                        <p className="control-hint" style={{ marginBottom: '16px' }}>Drag a bounding box on the image container, then input object prompt to insert.</p>
-                                        <div className="control-group">
-                                            <label className="control-label">Object to insert</label>
-                                            <input type="text" className="form-input" placeholder="e.g. neon sunglasses, gold badge..." value={genFillPrompt} onChange={(e) => setGenFillPrompt(e.target.value)} />
-                                        </div>
-                                        <button className="editor-btn editor-btn-primary" onClick={applyGenerativeFill} disabled={!genFillArea || !genFillPrompt} style={{ width: '100%', marginTop: '16px' }}>Apply Infill</button>
-                                    </>
-                                )}
-
-                                {/* 9. Uncrop (AI Expand) Controls */}
-                                {activeTool === 'uncrop' && (
-                                    <>
-                                        <h3 className="panel-title">AI Canvas Expand</h3>
-                                        <p className="control-hint" style={{ marginBottom: '16px' }}>Expand original dimensions boundaries and fill automatically.</p>
-                                        <div className="control-group">
-                                            <label className="control-label">Margin Padding: <span className="control-value">{expandMargin}px</span></label>
-                                            <input type="range" className="slider" min="10" max="150" value={expandMargin} onChange={(e) => setExpandMargin(parseInt(e.target.value))} />
-                                        </div>
-                                        <button className="editor-btn editor-btn-primary" onClick={applyUncrop} style={{ width: '100%', marginTop: '16px' }}>Expand Canvas</button>
-                                    </>
-                                )}
-
-                                {/* 10. AI Ads Creator Controls */}
-                                {activeTool === 'ai-ads' && (
-                                    <>
-                                        <h3 className="panel-title">AI Ads Creator</h3>
-                                        <div className="control-group">
-                                            <label className="control-label">Ad Layout Template</label>
-                                            <div className="ad-templates-list">
-                                                <div className={`ad-template-item ${selectedAdTemplate === 'cyber' ? 'active' : ''}`} onClick={() => setSelectedAdTemplate('cyber')}>
-                                                    <div className="ad-template-preview">⚡</div>
-                                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                        <span style={{ fontSize: '13px', fontWeight: '700' }}>Cyber Neon</span>
-                                                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>High-energy cyberpunk grid layout</span>
-                                                    </div>
-                                                </div>
-                                                <div className={`ad-template-item ${selectedAdTemplate === 'minimal' ? 'active' : ''}`} onClick={() => setSelectedAdTemplate('minimal')}>
-                                                    <div className="ad-template-preview">▫️</div>
-                                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                        <span style={{ fontSize: '13px', fontWeight: '700' }}>Elegant Minimal</span>
-                                                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Clean clean-cut luxury styling</span>
-                                                    </div>
-                                                </div>
-                                                <div className={`ad-template-item ${selectedAdTemplate === 'festive' ? 'active' : ''}`} onClick={() => setSelectedAdTemplate('festive')}>
-                                                    <div className="ad-template-preview">🎁</div>
-                                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                        <span style={{ fontSize: '13px', fontWeight: '700' }}>Holiday Festive</span>
-                                                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Gold accents and warm vibes</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="control-group">
-                                            <label className="control-label">Heading Text</label>
-                                            <input type="text" className="form-input" value={adTextTitle} onChange={(e) => setAdTextTitle(e.target.value)} />
-                                        </div>
-                                        <div className="control-group">
-                                            <label className="control-label">Offer/Discount Text</label>
-                                            <input type="text" className="form-input" value={adTextDiscount} onChange={(e) => setAdTextDiscount(e.target.value)} />
-                                        </div>
-                                        <div className="control-group">
-                                            <label className="control-label">CTA Label</label>
-                                            <input type="text" className="form-input" value={adTextCTA} onChange={(e) => setAdTextCTA(e.target.value)} />
-                                        </div>
-                                    </>
-                                )}
-
-                                {/* 11. Bulk Editor Controls */}
-                                {activeTool === 'bulk-editor' && (
-                                    <>
-                                        <h3 className="panel-title">Bulk Editor</h3>
-                                        <p className="control-hint" style={{ marginBottom: '16px' }}>Upload multiple frame slots and transparentize them all at once.</p>
-                                        
-                                        <button className="editor-btn editor-btn-outline" onClick={() => document.getElementById('bulk-files-selector')?.click()} style={{ width: '100%', marginBottom: '16px' }}>Select Files</button>
-                                        <input type="file" id="bulk-files-selector" multiple accept="image/png" style={{ display: 'none' }} onChange={handleBulkUpload} />
-
-                                        {bulkQueue.length > 0 && (
-                                            <>
-                                                <div className="bulk-queue">
-                                                    {bulkQueue.map((item, idx) => (
-                                                        <div key={idx} className="bulk-item">
-                                                            <span className="bulk-item-name">{item.name}</span>
-                                                            <span className={`bulk-item-status ${item.status}`}>{item.status.toUpperCase()}</span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                                <button className="editor-btn editor-btn-primary" onClick={processBulkQueue} style={{ width: '100%', marginTop: '16px' }}>Batch Cutout All</button>
-                                            </>
-                                        )}
-                                    </>
-                                )}
-
-                                {/* 12. Adjustments Controls */}
-                                {activeTool === 'adjustments' && (
-                                    <>
-                                        <h3 className="panel-title">Filters & Colors</h3>
-                                        <div className="control-group">
-                                            <label className="control-label">Brightness: <span className="control-value">{brightness}%</span></label>
-                                            <input type="range" className="slider" min="50" max="180" value={brightness} onChange={(e) => setBrightness(parseInt(e.target.value))} />
-                                        </div>
-                                        <div className="control-group">
-                                            <label className="control-label">Contrast: <span className="control-value">{contrast}%</span></label>
-                                            <input type="range" className="slider" min="50" max="180" value={contrast} onChange={(e) => setContrast(parseInt(e.target.value))} />
-                                        </div>
-                                        <div className="control-group">
-                                            <label className="control-label">Saturation: <span className="control-value">{saturation}%</span></label>
-                                            <input type="range" className="slider" min="0" max="200" value={saturation} onChange={(e) => setSaturation(parseInt(e.target.value))} />
-                                        </div>
-                                        <div className="control-group">
-                                            <label className="control-label">Blur Radius: <span className="control-value">{blur}px</span></label>
-                                            <input type="range" className="slider" min="0" max="15" value={blur} onChange={(e) => setBlur(parseInt(e.target.value))} />
-                                        </div>
-                                    </>
-                                )}
-
-                                {/* 13. Text & Overlays Controls */}
-                                {activeTool === 'text-overlay' && (
-                                    <>
-                                        <h3 className="panel-title">Text Overlays</h3>
-                                        <div className="control-group">
-                                            <label className="control-label">Overlay text</label>
-                                            <input type="text" className="form-input" value={newTextVal} onChange={(e) => {
-                                                setNewTextVal(e.target.value);
-                                                if (selectedTextId) {
-                                                    setTextItems(prev => prev.map(t => t.id === selectedTextId ? { ...t, text: e.target.value } : t));
-                                                }
+                        {/* CONTROLS SIDEBAR COLUMN */}
+                        <div className="controls-panel glass-panel" style={{ width: '300px', display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
+                            {/* 1. Background Remover Controls */}
+                            {activeTool === 'bg-remover' && (
+                                <>
+                                    <h3 className="panel-title">Remove Background</h3>
+                                    <div className="control-group">
+                                        <label className="control-label">Target Color</label>
+                                        <p className="control-hint">Click on screen to pick color</p>
+                                        <div className="color-display">
+                                            <div className="color-swatch" style={{ background: rgbToHex(targetColor.r, targetColor.g, targetColor.b) }} onClick={() => document.getElementById('color-picker-rem')?.click()}></div>
+                                            <span className="color-hex">{rgbToHex(targetColor.r, targetColor.g, targetColor.b).toUpperCase()}</span>
+                                            <input type="color" id="color-picker-rem" style={{ display: 'none' }} value={rgbToHex(targetColor.r, targetColor.g, targetColor.b)} onChange={(e) => {
+                                                const hex = e.target.value;
+                                                setTargetColor({
+                                                    r: parseInt(hex.slice(1, 3), 16),
+                                                    g: parseInt(hex.slice(3, 5), 16),
+                                                    b: parseInt(hex.slice(5, 7), 16)
+                                                });
                                             }} />
                                         </div>
-                                        <button className="editor-btn editor-btn-primary" onClick={addTextOverlay} style={{ width: '100%', marginBottom: '8px' }}>Add Text Line</button>
-                                        {selectedTextId && (
-                                            <button className="editor-btn editor-btn-outline" onClick={deleteSelectedText} style={{ width: '100%', borderColor: '#ef4444', color: '#ef4444' }}>Delete Selected</button>
-                                        )}
-                                    </>
-                                )}
+                                        <button className="editor-btn editor-btn-outline editor-btn-sm" onClick={() => autoDetectColor()} style={{ width: '100%', marginTop: '8px' }}>Auto Detect Color</button>
+                                    </div>
+                                    <div className="control-group">
+                                        <label className="control-label">Tolerance: <span className="control-value">{tolerance}</span></label>
+                                        <input type="range" className="slider" min="1" max="100" value={tolerance} onChange={(e) => setTolerance(parseInt(e.target.value))} />
+                                    </div>
+                                    <div className="control-group">
+                                        <label className="control-label">Edge Softness: <span className="control-value">{softness}</span></label>
+                                        <input type="range" className="slider" min="0" max="10" value={softness} onChange={(e) => setSoftness(parseInt(e.target.value))} />
+                                    </div>
+                                    <div className="control-group">
+                                        <label className="control-label checkbox-label">
+                                            <input type="checkbox" checked={contiguous} onChange={(e) => setContiguous(e.target.checked)} />
+                                            <span className="checkbox-custom"></span> Contiguous Fill
+                                        </label>
+                                    </div>
+                                    <button className="editor-btn editor-btn-primary" onClick={applyTransparency} disabled={!imageLoaded} style={{ width: '100%', marginTop: '16px' }}>Apply Cutout</button>
+                                </>
+                            )}
 
-                                {/* 14. Rotate & Crop Controls */}
-                                {activeTool === 'crop-rotate' && (
-                                    <>
-                                        <h3 className="panel-title">Rotate & Align</h3>
-                                        <div className="control-group">
-                                            <label className="control-label">Rotation Angle</label>
-                                            <div className="option-card-grid">
-                                                <div className={`option-card ${rotationAngle === 0 ? 'active' : ''}`} onClick={() => setRotationAngle(0)}>
-                                                    <span className="option-card-title">0°</span>
-                                                </div>
-                                                <div className={`option-card ${rotationAngle === 90 ? 'active' : ''}`} onClick={() => setRotationAngle(90)}>
-                                                    <span className="option-card-title">90°</span>
-                                                </div>
-                                                <div className={`option-card ${rotationAngle === 180 ? 'active' : ''}`} onClick={() => setRotationAngle(180)}>
-                                                    <span className="option-card-title">180°</span>
-                                                </div>
-                                                <div className={`option-card ${rotationAngle === 270 ? 'active' : ''}`} onClick={() => setRotationAngle(270)}>
-                                                    <span className="option-card-title">270°</span>
-                                                </div>
+                            {/* 2. Image Upscaler Controls */}
+                            {activeTool === 'upscaler' && (
+                                <>
+                                    <h3 className="panel-title">AI Image Upscaler</h3>
+                                    <p className="control-hint" style={{ marginBottom: '16px' }}>Super-resolve image limits using smart sub-pixel bilinear scaling.</p>
+                                    <div className="control-group">
+                                        <label className="control-label">Upscale Factor</label>
+                                        <div className="option-card-grid">
+                                            <div className={`option-card ${upscaleFactor === 2 ? 'active' : ''}`} onClick={() => setUpscaleFactor(2)}>
+                                                <span className="option-card-title">2x Scale</span>
+                                            </div>
+                                            <div className={`option-card ${upscaleFactor === 4 ? 'active' : ''}`} onClick={() => setUpscaleFactor(4)}>
+                                                <span className="option-card-title">4x Scale</span>
                                             </div>
                                         </div>
-                                        <div className="control-group" style={{ display: 'flex', gap: '8px' }}>
-                                            <button className={`editor-btn editor-btn-outline ${flipHorizontal ? 'active' : ''}`} onClick={() => setFlipHorizontal(!flipHorizontal)} style={{ flex: 1 }}>Flip Horiz</button>
-                                            <button className={`editor-btn editor-btn-outline ${flipVertical ? 'active' : ''}`} onClick={() => setFlipVertical(!flipVertical)} style={{ flex: 1 }}>Flip Vert</button>
-                                        </div>
-                                    </>
-                                )}
+                                    </div>
+                                    <button className="editor-btn editor-btn-primary" onClick={runUpscale} disabled={!imageLoaded} style={{ width: '100%', marginTop: '16px' }}>Upscale Image</button>
+                                </>
+                            )}
 
-                                {/* 15. Brush Drawing Controls */}
-                                {activeTool === 'brush-draw' && (
-                                    <>
-                                        <h3 className="panel-title">Doodle Brush</h3>
-                                        <div className="control-group">
-                                            <label className="control-label">Brush Color</label>
-                                            <div className="color-display">
-                                                <div className="color-swatch" style={{ background: brushColor }} onClick={() => document.getElementById('brush-color-picker')?.click()}></div>
-                                                <span className="color-hex">{brushColor.toUpperCase()}</span>
-                                                <input type="color" id="brush-color-picker" style={{ display: 'none' }} value={brushColor} onChange={(e) => setBrushColor(e.target.value)} />
+                            {/* 3. Video Background Remover Controls */}
+                            {activeTool === 'video-remover' && (
+                                <>
+                                    <h3 className="panel-title">Video BG Remover</h3>
+                                    <p className="control-hint" style={{ marginBottom: '16px' }}>Extract subject from video frames using real-time chroma subtraction keyer.</p>
+                                    <div className="control-group">
+                                        <label className="control-label">Select Sample Clip</label>
+                                        <select className="form-input" style={{ background: '#181824', border: '1px solid var(--panel-border)' }} value={videoSample} onChange={(e) => handleVideoSampleSelect(e.target.value)}>
+                                            <option value="">-- Choose Sample Video --</option>
+                                            <option value="spinning-cube">Spinning 3D Geometry</option>
+                                            <option value="cassette">Retro Rotating Cassette</option>
+                                        </select>
+                                    </div>
+                                    {videoSample && (
+                                        <>
+                                            <div className="control-group">
+                                                <label className="control-label">Chroma Key Color</label>
+                                                <div className="color-display">
+                                                    <div className="color-swatch" style={{ background: rgbToHex(chromaKeyColor.r, chromaKeyColor.g, chromaKeyColor.b) }} onClick={() => document.getElementById('chroma-picker')?.click()}></div>
+                                                    <span className="color-hex">{rgbToHex(chromaKeyColor.r, chromaKeyColor.g, chromaKeyColor.b).toUpperCase()}</span>
+                                                    <input type="color" id="chroma-picker" style={{ display: 'none' }} value={rgbToHex(chromaKeyColor.r, chromaKeyColor.g, chromaKeyColor.b)} onChange={(e) => {
+                                                        const hex = e.target.value;
+                                                        setChromaKeyColor({
+                                                            r: parseInt(hex.slice(1, 3), 16),
+                                                            g: parseInt(hex.slice(3, 5), 16),
+                                                            b: parseInt(hex.slice(5, 7), 16)
+                                                        });
+                                                    }} />
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div className="control-group">
-                                            <label className="control-label">Brush Size: <span className="control-value">{brushSize}px</span></label>
-                                            <input type="range" className="slider" min="2" max="40" value={brushSize} onChange={(e) => setBrushSize(parseInt(e.target.value))} />
-                                        </div>
-                                        <button className="editor-btn editor-btn-outline" onClick={() => setBrushStrokes([])} style={{ width: '100%' }}>Clear Canvas Doodles</button>
-                                    </>
-                                )}
+                                            <div className="control-group">
+                                                <label className="control-label">Sensitivity: <span className="control-value">{chromaTolerance}</span></label>
+                                                <input type="range" className="slider" min="10" max="150" value={chromaTolerance} onChange={(e) => setChromaTolerance(parseInt(e.target.value))} />
+                                            </div>
+                                            <button className="editor-btn editor-btn-outline" onClick={() => {
+                                                if (videoPlaying) {
+                                                    videoRef.current.pause();
+                                                    setVideoPlaying(false);
+                                                } else {
+                                                    videoRef.current.play();
+                                                    setVideoPlaying(true);
+                                                    triggerVideoRemovalLoop();
+                                                }
+                                            }} style={{ width: '100%', marginTop: '12px' }}>
+                                                {videoPlaying ? 'Pause Video' : 'Resume Video'}
+                                            </button>
+                                        </>
+                                    )}
+                                </>
+                            )}
 
-                                <div className="divider" style={{ margin: '16px 0', borderTop: '1px solid var(--panel-border)' }}></div>
-
-                                {/* Common actions and exporters */}
-                                <button className="editor-btn editor-btn-download" onClick={downloadPNG} style={{ width: '100%' }}>
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
-                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                                    </svg>
-                                    Download Output
-                                </button>
-
-                                <button className="editor-btn editor-btn-outline editor-btn-sm" onClick={resetEditor} style={{ marginTop: '8px', width: '100%' }}>Reset Workspace</button>
-                                <button className="editor-btn editor-btn-outline editor-btn-sm" onClick={triggerNewUpload} style={{ marginTop: '8px', width: '100%' }}>Upload New Image</button>
-                            </div>
-
-                            {/* CENTER WORKSPACE VIEWPORT */}
-                            <div className="canvas-area" style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
-                                <div className="canvas-tabs" style={{ display: 'flex', gap: '8px', padding: '12px 16px', background: 'rgba(9, 9, 11, 0.4)', borderBottom: '1px solid var(--panel-border)' }}>
-                                    <button className={`tab ${currentView === 'original' ? 'active' : ''}`} onClick={() => setCurrentView('original')} style={{ border: 'none', background: 'none', cursor: 'pointer', color: currentView === 'original' ? '#fff' : 'var(--text-muted)', fontWeight: '700', padding: '6px 12px' }}>
-                                        Original View
-                                    </button>
-                                    <button className={`tab ${currentView === 'result' ? 'active' : ''}`} onClick={() => {
-                                        if (!resultImageData) {
-                                            showToast('Apply transparency first', 'info');
-                                            return;
-                                        }
-                                        setCurrentView('result');
-                                    }} style={{ border: 'none', background: 'none', cursor: 'pointer', color: currentView === 'result' ? '#fff' : 'var(--text-muted)', fontWeight: '700', padding: '6px 12px' }}>
-                                        Result View
-                                    </button>
-                                </div>
-
-                                <div 
-                                    className="canvas-wrapper" 
-                                    ref={canvasWrapperRef}
-                                    onWheel={handleWheel}
-                                    onMouseDown={handleMouseDown}
-                                    onMouseMove={handleMouseMove}
-                                    onMouseUp={handleMouseUp}
-                                    onMouseLeave={() => setLoupe(l => ({ ...l, visible: false }))}
-                                    style={{ flex: 1, position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                >
-                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'radial-gradient(rgba(255,255,255,0.02) 2px, transparent 2px)', backgroundSize: '24px 24px' }}></div>
-                                    
-                                    <div 
-                                        className="canvas-container"
-                                        style={{
-                                            transform: `translate(${panX}px, ${panY}px) scale(${zoom})`,
-                                            transformOrigin: 'center center',
-                                            cursor: activeTool === 'magic-eraser' || activeTool === 'brush-draw' || activeTool === 'generative-fill' ? 'crosshair' : isDragging ? 'grabbing' : 'grab',
-                                            position: 'relative',
-                                            zIndex: 1
-                                        }}
-                                    >
-                                        <canvas ref={mainCanvasRef} id="main-canvas" style={{ display: 'block', maxWidth: 'none', boxShadow: '0 12px 32px rgba(0,0,0,0.5)', borderRadius: '4px' }}></canvas>
-                                        
-                                        {lastClickedPixel && activeTool === 'bg-remover' && (
-                                            <div 
-                                                className="canvas-crosshair"
-                                                style={{
-                                                    position: 'absolute',
-                                                    left: `${lastClickedPixel.x}px`,
-                                                    top: `${lastClickedPixel.y}px`,
-                                                    width: '12px',
-                                                    height: '12px',
-                                                    border: '2px solid #a78bfa',
-                                                    borderRadius: '50%',
-                                                    transform: 'translate(-50%, -50%)',
-                                                    pointerEvents: 'none'
-                                                }}
-                                            ></div>
-                                        )}
+                            {/* 4. Change Background Controls */}
+                            {activeTool === 'change-bg' && (
+                                <>
+                                    <h3 className="panel-title">Change Background</h3>
+                                    <div className="control-group">
+                                        <label className="control-label">Backdrop Type</label>
+                                        <select className="form-input" style={{ background: '#181824', border: '1px solid var(--panel-border)' }} value={selectedBgType} onChange={(e) => setSelectedBgType(e.target.value)}>
+                                            <option value="color">Solid Color</option>
+                                            <option value="gradient">Linear Gradient</option>
+                                            <option value="image">Scenic Template</option>
+                                        </select>
                                     </div>
 
-                                    {/* Hover Loupe Magnifier overlay */}
-                                    {loupe.visible && activeTool === 'bg-remover' && (
-                                        <div 
-                                            className="magnifier-loupe"
-                                            style={{
-                                                position: 'absolute',
-                                                left: `${loupe.x}px`,
-                                                top: `${loupe.y}px`,
-                                                transform: 'translate(-50%, -130px)',
-                                                width: '120px',
-                                                height: '120px',
-                                                borderRadius: '50%',
-                                                border: '3px solid var(--accent-purple)',
-                                                boxShadow: 'var(--shadow-lg)',
-                                                overflow: 'hidden',
-                                                pointerEvents: 'none',
-                                                zIndex: 10
-                                            }}
-                                        >
-                                            <canvas ref={loupeCanvasRef} width="120" height="120"></canvas>
-                                            <div className="loupe-crosshair" style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                <div style={{ width: '6px', height: '6px', border: '1px solid #fff', borderRadius: '50%' }}></div>
+                                    {selectedBgType === 'color' && (
+                                        <div className="control-group">
+                                            <label className="control-label">Background Color</label>
+                                            <div className="color-display">
+                                                <div className="color-swatch" style={{ background: selectedBgColor }} onClick={() => document.getElementById('bg-color-picker')?.click()}></div>
+                                                <span className="color-hex">{selectedBgColor.toUpperCase()}</span>
+                                                <input type="color" id="bg-color-picker" style={{ display: 'none' }} value={selectedBgColor} onChange={(e) => setSelectedBgColor(e.target.value)} />
                                             </div>
                                         </div>
                                     )}
 
-                                    <div className="zoom-info" style={{ position: 'absolute', bottom: '16px', right: '16px', background: 'rgba(9, 9, 11, 0.8)', border: '1px solid var(--panel-border)', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '700', color: '#fff' }}>{Math.round(zoom * 100)}%</div>
-                                </div>
-                            </div>
+                                    {selectedBgType === 'gradient' && (
+                                        <div className="control-group">
+                                            <label className="control-label">Select Gradient</label>
+                                            <div className="option-card-grid">
+                                                <div className={`option-card ${selectedBgGradient === 'cosmic' ? 'active' : ''}`} onClick={() => setSelectedBgGradient('cosmic')}>
+                                                    <span className="option-card-title">Cosmic Cyan</span>
+                                                </div>
+                                                <div className={`option-card ${selectedBgGradient === 'warm' ? 'active' : ''}`} onClick={() => setSelectedBgGradient('warm')}>
+                                                    <span className="option-card-title">Warm Pink</span>
+                                                </div>
+                                                <div className={`option-card ${selectedBgGradient === 'neon' ? 'active' : ''}`} onClick={() => setSelectedBgGradient('neon')}>
+                                                    <span className="option-card-title">Neon Emerald</span>
+                                                </div>
+                                                <div className={`option-card ${selectedBgGradient === 'sunset' ? 'active' : ''}`} onClick={() => setSelectedBgGradient('sunset')}>
+                                                    <span className="option-card-title">Rose Sunset</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
 
+                                    {selectedBgType === 'image' && (
+                                        <div className="control-group">
+                                            <label className="control-label">Studio Backdrop Templates</label>
+                                            <div className="bg-image-grid">
+                                                <div className={`bg-image-card ${selectedBgImage === 'studio' ? 'active' : ''}`} style={{ backgroundImage: `url(https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=120&auto=format&fit=crop)` }} onClick={() => setSelectedBgImage('studio')}>
+                                                    <div className="bg-image-label">Fine Art</div>
+                                                </div>
+                                                <div className={`bg-image-card ${selectedBgImage === 'cafe' ? 'active' : ''}`} style={{ backgroundImage: `url(https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=120&auto=format&fit=crop)` }} onClick={() => setSelectedBgImage('cafe')}>
+                                                    <div className="bg-image-label">Cozy Cafe</div>
+                                                </div>
+                                                <div className={`bg-image-card ${selectedBgImage === 'showroom' ? 'active' : ''}`} style={{ backgroundImage: `url(https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=120&auto=format&fit=crop)` }} onClick={() => setSelectedBgImage('showroom')}>
+                                                    <div className="bg-image-label">Room</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+
+                            {/* 5. Magic Eraser Controls */}
+                            {activeTool === 'magic-eraser' && (
+                                <>
+                                    <h3 className="panel-title">Magic Eraser</h3>
+                                    <p className="control-hint" style={{ marginBottom: '16px' }}>Draw directly over objects, pixels, or defects you want to erase from canvas.</p>
+                                    <div className="control-group">
+                                        <label className="control-label">Brush Size: <span className="control-value">{eraserBrushSize}px</span></label>
+                                        <input type="range" className="slider" min="5" max="80" value={eraserBrushSize} onChange={(e) => setEraserBrushSize(parseInt(e.target.value))} />
+                                    </div>
+                                    <button className="editor-btn editor-btn-outline" onClick={() => setCurrentEraserPath([])} style={{ width: '100%' }}>Clear Brush Path</button>
+                                </>
+                            )}
+
+                            {/* 6. AI Image Generator Controls */}
+                            {activeTool === 'ai-generator' && (
+                                <>
+                                    <h3 className="panel-title">AI Image Generator</h3>
+                                    <div className="control-group">
+                                        <label className="control-label">Text Prompt</label>
+                                        <input type="text" className="form-input" placeholder="e.g. Luxury modern watch, studio lighting..." value={aiImagePrompt} onChange={(e) => setAiImagePrompt(e.target.value)} />
+                                    </div>
+                                    <div className="control-group">
+                                        <label className="control-label">Aesthetic Style</label>
+                                        <select className="form-input" style={{ background: '#181824', border: '1px solid var(--panel-border)' }} value={aiImageStyle} onChange={(e) => setAiImageStyle(e.target.value)}>
+                                            <option value="photorealistic">Photorealistic</option>
+                                            <option value="isometric">Isometric 3D</option>
+                                            <option value="minimalist">Minimalist Render</option>
+                                        </select>
+                                    </div>
+                                    <button className="editor-btn editor-btn-primary" onClick={runAiImageGenerator} style={{ width: '100%', marginTop: '16px' }}>Generate Template</button>
+                                </>
+                            )}
+
+                            {/* 7. AI Video Generator Controls */}
+                            {activeTool === 'ai-video' && (
+                                <>
+                                    <h3 className="panel-title">AI Video Generator</h3>
+                                    <div className="control-group">
+                                        <label className="control-label">Prompt for Motion</label>
+                                        <input type="text" className="form-input" placeholder="e.g. Rotating camera zoom, floating dust..." value={aiVideoPrompt} onChange={(e) => setAiVideoPrompt(e.target.value)} />
+                                    </div>
+                                    <button className="editor-btn editor-btn-primary" onClick={runAiVideoGenerator} style={{ width: '100%', marginTop: '12px' }}>Generate Motion Clip</button>
+                                    
+                                    {generatedVideoUrl && (
+                                        <div style={{ marginTop: '20px' }}>
+                                            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>PREVIEW GENERATED CLIP</span>
+                                            <video src={generatedVideoUrl} controls autoPlay loop muted width="100%" style={{ borderRadius: '12px', border: '1px solid var(--panel-border)', marginTop: '8px' }} />
+                                        </div>
+                                    )}
+                                </>
+                            )}
+
+                            {/* 8. Generative Fill Controls */}
+                            {activeTool === 'generative-fill' && (
+                                <>
+                                    <h3 className="panel-title">Generative Fill</h3>
+                                    <p className="control-hint" style={{ marginBottom: '16px' }}>Drag a bounding box on the image container, then input object prompt to insert.</p>
+                                    <div className="control-group">
+                                        <label className="control-label">Object to insert</label>
+                                        <input type="text" className="form-input" placeholder="e.g. neon sunglasses, gold badge..." value={genFillPrompt} onChange={(e) => setGenFillPrompt(e.target.value)} />
+                                    </div>
+                                    <button className="editor-btn editor-btn-primary" onClick={applyGenerativeFill} disabled={!genFillArea || !genFillPrompt || !imageLoaded} style={{ width: '100%', marginTop: '16px' }}>Apply Infill</button>
+                                </>
+                            )}
+
+                            {/* 9. Uncrop (AI Expand) Controls */}
+                            {activeTool === 'uncrop' && (
+                                <>
+                                    <h3 className="panel-title">AI Canvas Expand</h3>
+                                    <p className="control-hint" style={{ marginBottom: '16px' }}>Expand original dimensions boundaries and fill automatically.</p>
+                                    <div className="control-group">
+                                        <label className="control-label">Margin Padding: <span className="control-value">{expandMargin}px</span></label>
+                                        <input type="range" className="slider" min="10" max="150" value={expandMargin} onChange={(e) => setExpandMargin(parseInt(e.target.value))} />
+                                    </div>
+                                    <button className="editor-btn editor-btn-primary" onClick={applyUncrop} disabled={!imageLoaded} style={{ width: '100%', marginTop: '16px' }}>Expand Canvas</button>
+                                </>
+                            )}
+
+                            {/* 10. AI Ads Creator Controls */}
+                            {activeTool === 'ai-ads' && (
+                                <>
+                                    <h3 className="panel-title">AI Ads Creator</h3>
+                                    <div className="control-group">
+                                        <label className="control-label">Ad Layout Template</label>
+                                        <div className="ad-templates-list">
+                                            <div className={`ad-template-item ${selectedAdTemplate === 'cyber' ? 'active' : ''}`} onClick={() => setSelectedAdTemplate('cyber')}>
+                                                <div className="ad-template-preview">⚡</div>
+                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                    <span style={{ fontSize: '13px', fontWeight: '700' }}>Cyber Neon</span>
+                                                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>High-energy cyberpunk grid layout</span>
+                                                </div>
+                                            </div>
+                                            <div className={`ad-template-item ${selectedAdTemplate === 'minimal' ? 'active' : ''}`} onClick={() => setSelectedAdTemplate('minimal')}>
+                                                <div className="ad-template-preview">▫️</div>
+                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                    <span style={{ fontSize: '13px', fontWeight: '700' }}>Elegant Minimal</span>
+                                                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Clean clean-cut luxury styling</span>
+                                                </div>
+                                            </div>
+                                            <div className={`ad-template-item ${selectedAdTemplate === 'festive' ? 'active' : ''}`} onClick={() => setSelectedAdTemplate('festive')}>
+                                                <div className="ad-template-preview">🎁</div>
+                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                    <span style={{ fontSize: '13px', fontWeight: '700' }}>Holiday Festive</span>
+                                                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Gold accents and warm vibes</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="control-group">
+                                        <label className="control-label">Heading Text</label>
+                                        <input type="text" className="form-input" value={adTextTitle} onChange={(e) => setAdTextTitle(e.target.value)} />
+                                    </div>
+                                    <div className="control-group">
+                                        <label className="control-label">Offer/Discount Text</label>
+                                        <input type="text" className="form-input" value={adTextDiscount} onChange={(e) => setAdTextDiscount(e.target.value)} />
+                                    </div>
+                                    <div className="control-group">
+                                        <label className="control-label">CTA Label</label>
+                                        <input type="text" className="form-input" value={adTextCTA} onChange={(e) => setAdTextCTA(e.target.value)} />
+                                    </div>
+                                </>
+                            )}
+
+                            {/* 11. Bulk Editor Controls */}
+                            {activeTool === 'bulk-editor' && (
+                                <>
+                                    <h3 className="panel-title">Bulk Editor</h3>
+                                    <p className="control-hint" style={{ marginBottom: '16px' }}>Upload multiple frame slots and transparentize them all at once.</p>
+                                    
+                                    <button className="editor-btn editor-btn-outline" onClick={() => document.getElementById('bulk-files-selector')?.click()} style={{ width: '100%', marginBottom: '16px' }}>Select Files</button>
+                                    <input type="file" id="bulk-files-selector" multiple accept="image/png" style={{ display: 'none' }} onChange={handleBulkUpload} />
+
+                                    {bulkQueue.length > 0 && (
+                                        <>
+                                            <div className="bulk-queue">
+                                                {bulkQueue.map((item, idx) => (
+                                                    <div key={idx} className="bulk-item">
+                                                        <span className="bulk-item-name">{item.name}</span>
+                                                        <span className={`bulk-item-status ${item.status}`}>{item.status.toUpperCase()}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <button className="editor-btn editor-btn-primary" onClick={processBulkQueue} style={{ width: '100%', marginTop: '16px' }}>Batch Cutout All</button>
+                                        </>
+                                    )}
+                                </>
+                            )}
+
+                            {/* 12. Adjustments Controls */}
+                            {activeTool === 'adjustments' && (
+                                <>
+                                    <h3 className="panel-title">Filters & Colors</h3>
+                                    <div className="control-group">
+                                        <label className="control-label">Brightness: <span className="control-value">{brightness}%</span></label>
+                                        <input type="range" className="slider" min="50" max="180" value={brightness} onChange={(e) => setBrightness(parseInt(e.target.value))} />
+                                    </div>
+                                    <div className="control-group">
+                                        <label className="control-label">Contrast: <span className="control-value">{contrast}%</span></label>
+                                        <input type="range" className="slider" min="50" max="180" value={contrast} onChange={(e) => setContrast(parseInt(e.target.value))} />
+                                    </div>
+                                    <div className="control-group">
+                                        <label className="control-label">Saturation: <span className="control-value">{saturation}%</span></label>
+                                        <input type="range" className="slider" min="0" max="200" value={saturation} onChange={(e) => setSaturation(parseInt(e.target.value))} />
+                                    </div>
+                                    <div className="control-group">
+                                        <label className="control-label">Blur Radius: <span className="control-value">{blur}px</span></label>
+                                        <input type="range" className="slider" min="0" max="15" value={blur} onChange={(e) => setBlur(parseInt(e.target.value))} />
+                                    </div>
+                                </>
+                            )}
+
+                            {/* 13. Text & Overlays Controls */}
+                            {activeTool === 'text-overlay' && (
+                                <>
+                                    <h3 className="panel-title">Text Overlays</h3>
+                                    <div className="control-group">
+                                        <label className="control-label">Overlay text</label>
+                                        <input type="text" className="form-input" value={newTextVal} onChange={(e) => {
+                                            setNewTextVal(e.target.value);
+                                            if (selectedTextId) {
+                                                setTextItems(prev => prev.map(t => t.id === selectedTextId ? { ...t, text: e.target.value } : t));
+                                            }
+                                        }} />
+                                    </div>
+                                    <button className="editor-btn editor-btn-primary" onClick={addTextOverlay} style={{ width: '100%', marginBottom: '8px' }}>Add Text Line</button>
+                                    {selectedTextId && (
+                                        <button className="editor-btn editor-btn-outline" onClick={deleteSelectedText} style={{ width: '100%', borderColor: '#ef4444', color: '#ef4444' }}>Delete Selected</button>
+                                    )}
+                                </>
+                            )}
+
+                            {/* 14. Rotate & Crop Controls */}
+                            {activeTool === 'crop-rotate' && (
+                                <>
+                                    <h3 className="panel-title">Rotate & Align</h3>
+                                    <div className="control-group">
+                                        <label className="control-label">Rotation Angle</label>
+                                        <div className="option-card-grid">
+                                            <div className={`option-card ${rotationAngle === 0 ? 'active' : ''}`} onClick={() => setRotationAngle(0)}>
+                                                <span className="option-card-title">0°</span>
+                                            </div>
+                                            <div className={`option-card ${rotationAngle === 90 ? 'active' : ''}`} onClick={() => setRotationAngle(90)}>
+                                                <span className="option-card-title">90°</span>
+                                            </div>
+                                            <div className={`option-card ${rotationAngle === 180 ? 'active' : ''}`} onClick={() => setRotationAngle(180)}>
+                                                <span className="option-card-title">180°</span>
+                                            </div>
+                                            <div className={`option-card ${rotationAngle === 270 ? 'active' : ''}`} onClick={() => setRotationAngle(270)}>
+                                                <span className="option-card-title">270°</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="control-group" style={{ display: 'flex', gap: '8px' }}>
+                                        <button className={`editor-btn editor-btn-outline ${flipHorizontal ? 'active' : ''}`} onClick={() => setFlipHorizontal(!flipHorizontal)} style={{ flex: 1 }}>Flip Horiz</button>
+                                        <button className={`editor-btn editor-btn-outline ${flipVertical ? 'active' : ''}`} onClick={() => setFlipVertical(!flipVertical)} style={{ flex: 1 }}>Flip Vert</button>
+                                    </div>
+                                </>
+                            )}
+
+                            {/* 15. Brush Drawing Controls */}
+                            {activeTool === 'brush-draw' && (
+                                <>
+                                    <h3 className="panel-title">Doodle Brush</h3>
+                                    <div className="control-group">
+                                        <label className="control-label">Brush Color</label>
+                                        <div className="color-display">
+                                            <div className="color-swatch" style={{ background: brushColor }} onClick={() => document.getElementById('brush-color-picker')?.click()}></div>
+                                            <span className="color-hex">{brushColor.toUpperCase()}</span>
+                                            <input type="color" id="brush-color-picker" style={{ display: 'none' }} value={brushColor} onChange={(e) => setBrushColor(e.target.value)} />
+                                        </div>
+                                    </div>
+                                    <div className="control-group">
+                                        <label className="control-label">Brush Size: <span className="control-value">{brushSize}px</span></label>
+                                        <input type="range" className="slider" min="2" max="40" value={brushSize} onChange={(e) => setBrushSize(parseInt(e.target.value))} />
+                                    </div>
+                                    <button className="editor-btn editor-btn-outline" onClick={() => setBrushStrokes([])} style={{ width: '100%' }}>Clear Canvas Doodles</button>
+                                </>
+                            )}
+
+                            <div className="divider" style={{ margin: '16px 0', borderTop: '1px solid var(--panel-border)' }}></div>
+
+                            {/* Common actions and exporters */}
+                            <button className="editor-btn editor-btn-download" onClick={downloadPNG} disabled={!imageLoaded && activeTool !== 'video-remover'} style={{ width: '100%' }}>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                                </svg>
+                                Download Output
+                            </button>
+
+                            <button className="editor-btn editor-btn-outline editor-btn-sm" onClick={resetEditor} disabled={!imageLoaded} style={{ marginTop: '8px', width: '100%' }}>Reset Workspace</button>
+                            <button className="editor-btn editor-btn-outline editor-btn-sm" onClick={triggerNewUpload} style={{ marginTop: '8px', width: '100%' }}>Upload New Image</button>
                         </div>
-                    </section>
-                )}
+
+                        {/* CENTER WORKSPACE VIEWPORT */}
+                        <div className="canvas-area" style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+                            {activeTool === 'bulk-editor' ? (
+                                <div className="bulk-editor-workspace" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', position: 'relative', zIndex: 1 }}>
+                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'radial-gradient(rgba(255,255,255,0.02) 2px, transparent 2px)', backgroundSize: '24px 24px' }}></div>
+                                    <div className="upload-zone" style={{ zIndex: 1, maxWidth: '500px' }} onClick={() => document.getElementById('bulk-files-selector')?.click()}>
+                                        <div className="upload-icon">⚡</div>
+                                        <h2 className="upload-title">Bulk Image Editor</h2>
+                                        <p className="upload-desc">Select multiple frame cut images to remove background in batch</p>
+                                    </div>
+                                    {bulkQueue.length > 0 && (
+                                        <div className="bulk-progress-container" style={{ zIndex: 1, width: '100%', maxWidth: '500px', marginTop: '24px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--panel-border)', borderRadius: '12px', padding: '16px' }}>
+                                            <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: '700' }}>Batch Queue ({bulkQueue.filter(i => i.status === 'completed').length}/{bulkQueue.length})</h4>
+                                            <div className="bulk-queue" style={{ maxHeight: '180px', overflowY: 'auto' }}>
+                                                {bulkQueue.map((item, idx) => (
+                                                    <div key={idx} className="bulk-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                                                        <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{item.name}</span>
+                                                        <span style={{ fontSize: '12px', fontWeight: '700', color: item.status === 'completed' ? '#22c55e' : item.status === 'processing' ? '#06b6d4' : '#6b7280' }}>
+                                                            {item.status.toUpperCase()}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : activeTool === 'ai-generator' && !imageLoaded ? (
+                                <div className="ai-workspace-start" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', position: 'relative', zIndex: 1 }}>
+                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'radial-gradient(rgba(255,255,255,0.02) 2px, transparent 2px)', backgroundSize: '24px 24px' }}></div>
+                                    <div style={{ zIndex: 1, textAlign: 'center', maxWidth: '500px' }}>
+                                        <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎨</div>
+                                        <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', color: '#fff' }}>AI Image Creator</h2>
+                                        <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: '1.6' }}>
+                                            Type a prompt in the left settings panel (e.g. "Luxury premium watch") and watch the AI generator create high-resolution marketing assets instantly.
+                                        </p>
+                                    </div>
+                                </div>
+                            ) : activeTool === 'ai-video' && !generatedVideoUrl ? (
+                                <div className="ai-workspace-start" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', position: 'relative', zIndex: 1 }}>
+                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'radial-gradient(rgba(255,255,255,0.02) 2px, transparent 2px)', backgroundSize: '24px 24px' }}></div>
+                                    <div style={{ zIndex: 1, textAlign: 'center', maxWidth: '500px' }}>
+                                        <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎬</div>
+                                        <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', color: '#fff' }}>AI Video Motion Studio</h2>
+                                        <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: '1.6' }}>
+                                            Turn text descriptions or static images into moving cinema graphics. Provide a motion prompt on the left to synthesize keyframes.
+                                        </p>
+                                    </div>
+                                </div>
+                            ) : activeTool === 'video-remover' && !videoSample ? (
+                                <div className="video-workspace-start" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', position: 'relative', zIndex: 1 }}>
+                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'radial-gradient(rgba(255,255,255,0.02) 2px, transparent 2px)', backgroundSize: '24px 24px' }}></div>
+                                    <div style={{ zIndex: 1, textAlign: 'center', maxWidth: '500px' }}>
+                                        <div style={{ fontSize: '48px', marginBottom: '16px' }}>📹</div>
+                                        <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', color: '#fff' }}>Video Background Remover</h2>
+                                        <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: '1.6' }}>
+                                            Select a sample video clip in the left settings panel to start extracting moving subjects in real time.
+                                        </p>
+                                    </div>
+                                </div>
+                            ) : !imageLoaded && activeTool !== 'video-remover' ? (
+                                <div className="workspace-upload-wrapper" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', position: 'relative', zIndex: 1 }}>
+                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'radial-gradient(rgba(255,255,255,0.02) 2px, transparent 2px)', backgroundSize: '24px 24px' }}></div>
+                                    <div 
+                                        className="upload-zone"
+                                        style={{ zIndex: 1 }}
+                                        onClick={() => fileInputRef.current?.click()}
+                                        onDragOver={(e) => {
+                                            e.preventDefault();
+                                            e.currentTarget.classList.add('drag-over');
+                                        }}
+                                        onDragLeave={(e) => {
+                                            e.currentTarget.classList.remove('drag-over');
+                                        }}
+                                        onDrop={(e) => {
+                                            e.preventDefault();
+                                            e.currentTarget.classList.remove('drag-over');
+                                            const file = e.dataTransfer.files[0];
+                                            if (file) loadImage(file);
+                                        }}
+                                    >
+                                        <div className="upload-icon">
+                                            <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                                                <path d="M32 8L32 40" stroke="url(#upGrad)" strokeWidth="3" strokeLinecap="round"/>
+                                                <path d="M20 20L32 8L44 20" stroke="url(#upGrad)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                                                <path d="M8 40V48C8 52.4183 11.5817 56 16 56H48C52.4183 56 56 52.4183 56 48V40" stroke="url(#upGrad)" strokeWidth="3" strokeLinecap="round"/>
+                                                <defs>
+                                                    <linearGradient id="upGrad" x1="32" y1="8" x2="32" y2="56">
+                                                        <stop offset="0%" stopColor="#a78bfa"/>
+                                                        <stop offset="100%" stopColor="#06b6d4"/>
+                                                    </linearGradient>
+                                                </defs>
+                                            </svg>
+                                        </div>
+                                        <h2 className="upload-title">Drop your image here</h2>
+                                        <p className="upload-desc">or click to browse • PNG format supported</p>
+                                        <input 
+                                            type="file" 
+                                            ref={fileInputRef} 
+                                            onChange={handleFileChange} 
+                                            accept="image/png" 
+                                            hidden 
+                                        />
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="canvas-tabs" style={{ display: 'flex', gap: '8px', padding: '12px 16px', background: 'rgba(9, 9, 11, 0.4)', borderBottom: '1px solid var(--panel-border)' }}>
+                                        <button className={`tab ${currentView === 'original' ? 'active' : ''}`} onClick={() => setCurrentView('original')} style={{ border: 'none', background: 'none', cursor: 'pointer', color: currentView === 'original' ? '#fff' : 'var(--text-muted)', fontWeight: '700', padding: '6px 12px' }}>
+                                            Original View
+                                        </button>
+                                        <button className={`tab ${currentView === 'result' ? 'active' : ''}`} onClick={() => {
+                                            if (!resultImageData) {
+                                                showToast('Apply transparency first', 'info');
+                                                return;
+                                            }
+                                            setCurrentView('result');
+                                        }} style={{ border: 'none', background: 'none', cursor: 'pointer', color: currentView === 'result' ? '#fff' : 'var(--text-muted)', fontWeight: '700', padding: '6px 12px' }}>
+                                            Result View
+                                        </button>
+                                    </div>
+
+                                    <div 
+                                        className="canvas-wrapper" 
+                                        ref={canvasWrapperRef}
+                                        onWheel={handleWheel}
+                                        onMouseDown={handleMouseDown}
+                                        onMouseMove={handleMouseMove}
+                                        onMouseUp={handleMouseUp}
+                                        onMouseLeave={() => setLoupe(l => ({ ...l, visible: false }))}
+                                        style={{ flex: 1, position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                    >
+                                        <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'radial-gradient(rgba(255,255,255,0.02) 2px, transparent 2px)', backgroundSize: '24px 24px' }}></div>
+                                        
+                                        <div 
+                                            className="canvas-container"
+                                            style={{
+                                                transform: `translate(${panX}px, ${panY}px) scale(${zoom})`,
+                                                transformOrigin: 'center center',
+                                                cursor: activeTool === 'magic-eraser' || activeTool === 'brush-draw' || activeTool === 'generative-fill' ? 'crosshair' : isDragging ? 'grabbing' : 'grab',
+                                                position: 'relative',
+                                                zIndex: 1
+                                            }}
+                                        >
+                                            <canvas ref={mainCanvasRef} id="main-canvas" style={{ display: 'block', maxWidth: 'none', boxShadow: '0 12px 32px rgba(0,0,0,0.5)', borderRadius: '4px' }}></canvas>
+                                            
+                                            {lastClickedPixel && activeTool === 'bg-remover' && (
+                                                <div 
+                                                    className="canvas-crosshair"
+                                                    style={{
+                                                        position: 'absolute',
+                                                        left: `${lastClickedPixel.x}px`,
+                                                        top: `${lastClickedPixel.y}px`,
+                                                        width: '12px',
+                                                        height: '12px',
+                                                        border: '2px solid #a78bfa',
+                                                        borderRadius: '50%',
+                                                        transform: 'translate(-50%, -50%)',
+                                                        pointerEvents: 'none'
+                                                    }}
+                                                ></div>
+                                            )}
+                                        </div>
+
+                                        {/* Hover Loupe Magnifier overlay */}
+                                        {loupe.visible && activeTool === 'bg-remover' && (
+                                            <div 
+                                                className="magnifier-loupe"
+                                                style={{
+                                                    position: 'absolute',
+                                                    left: `${loupe.x}px`,
+                                                    top: `${loupe.y}px`,
+                                                    transform: 'translate(-50%, -130px)',
+                                                    width: '120px',
+                                                    height: '120px',
+                                                    borderRadius: '50%',
+                                                    border: '3px solid var(--accent-purple)',
+                                                    boxShadow: 'var(--shadow-lg)',
+                                                    overflow: 'hidden',
+                                                    pointerEvents: 'none',
+                                                    zIndex: 10
+                                                }}
+                                            >
+                                                <canvas ref={loupeCanvasRef} width="120" height="120"></canvas>
+                                                <div className="loupe-crosshair" style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                    <div style={{ width: '6px', height: '6px', border: '1px solid #fff', borderRadius: '50%' }}></div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="zoom-info" style={{ position: 'absolute', bottom: '16px', right: '16px', background: 'rgba(9, 9, 11, 0.8)', border: '1px solid var(--panel-border)', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '700', color: '#fff' }}>{Math.round(zoom * 100)}%</div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </section>
             </main>
 
             {/* Global Processing Loader Overlay */}
