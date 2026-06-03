@@ -852,17 +852,13 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
         });
     };
 
-    // AI Automatic Background Removal
-    const applyAiAutoCutout = async (passedImg = null, passedImgData = null) => {
-        const img = passedImg || originalImage;
-        const imgData = passedImgData || originalImageData;
-        if (!img || !imgData) return;
-        setProcessing({ visible: true, progress: 20, title: 'Loading AI Model...' });
-        
+    // Fast AI Fallback (MediaPipe Selfie Segmentation)
+    const applyMediaPipeCutout = async (img, imgData) => {
+        setProcessing({ visible: true, progress: 20, title: 'Loading Fast AI Model...' });
         try {
             await loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js');
             
-            setProcessing({ visible: true, progress: 45, title: 'Initializing AI detector...' });
+            setProcessing({ visible: true, progress: 45, title: 'Initializing Fast AI detector...' });
             
             const selfieSegmentation = new window.SelfieSegmentation({
                 locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`
@@ -1021,7 +1017,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                 setProcessing({ visible: false, progress: 0 });
                 showToast('AI Background removed successfully!', 'success');
             } else {
-                throw new Error('AI processing timed out');
+                throw new Error('Fast AI processing timed out');
             }
             
             selfieSegmentation.close();
@@ -1031,6 +1027,67 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
             setProcessing({ visible: false, progress: 0 });
             showToast('AI cutout failed. Using color key fallback.', 'warning');
             applyTransparency();
+        }
+    };
+
+    // AI Automatic Background Removal (Professional U2Net/MODNet Model)
+    const applyAiAutoCutout = async (passedImg = null, passedImgData = null) => {
+        const img = passedImg || originalImage;
+        const imgData = passedImgData || originalImageData;
+        if (!img || !imgData) return;
+        setProcessing({ visible: true, progress: 10, title: 'Initializing Professional AI...' });
+        
+        try {
+            // Dynamically import the package from jsdelivr CDN ESM
+            const module = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal/+esm');
+            const removeBackground = module.removeBackground;
+            
+            setProcessing({ visible: true, progress: 20, title: 'AI processing image background...' });
+            
+            const processedBlob = await removeBackground(img.src, {
+                debug: false,
+                progress: (key, current, total) => {
+                    const percent = Math.round((current / total) * 100);
+                    let phase = 'AI is thinking...';
+                    if (key.includes('fetch')) {
+                        phase = 'Loading AI Model Files...';
+                    } else if (key.includes('onnx')) {
+                        phase = 'Extracting foreground...';
+                    }
+                    const overallPercent = 20 + Math.round((percent / 100) * 75);
+                    setProcessing({ visible: true, progress: overallPercent, title: `${phase} (${percent}%)` });
+                }
+            });
+            
+            setProcessing({ visible: true, progress: 95, title: 'Rendering final output...' });
+            
+            const resultImg = new Image();
+            resultImg.src = URL.createObjectURL(processedBlob);
+            await new Promise((resolve, reject) => {
+                resultImg.onload = resolve;
+                resultImg.onerror = reject;
+            });
+            
+            const w = imgData.width;
+            const h = imgData.height;
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = w;
+            tempCanvas.height = h;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.drawImage(resultImg, 0, 0, w, h);
+            const cutoutResult = tempCtx.getImageData(0, 0, w, h);
+            
+            // Clean up Object URL
+            URL.revokeObjectURL(resultImg.src);
+            
+            setResultImageData(cutoutResult);
+            setCurrentView('result');
+            setProcessing({ visible: false, progress: 0 });
+            showToast('Professional AI Background removed successfully!', 'success');
+            
+        } catch (err) {
+            console.warn('Professional AI failed, falling back to Fast AI (MediaPipe)...', err);
+            await applyMediaPipeCutout(img, imgData);
         }
     };
 
