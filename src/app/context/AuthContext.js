@@ -11,13 +11,17 @@ export function AuthProvider({ children }) {
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const [authMode, setAuthMode] = useState('login'); // 'login' | 'signup'
+    const [googleClientId, setGoogleClientId] = useState('');
 
-    // Load initial state from localStorage
+    // Load initial state from localStorage & parse Google redirect hash
     useEffect(() => {
         const storedUser = localStorage.getItem('framecut_user');
         if (storedUser) {
             setUser(JSON.parse(storedUser));
         }
+
+        const storedClientId = localStorage.getItem('framecut_google_client_id') || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
+        setGoogleClientId(storedClientId);
 
         const storedUsage = localStorage.getItem('framecut_usage');
         if (storedUsage) {
@@ -30,6 +34,46 @@ export function AuthProvider({ children }) {
                 localStorage.setItem('framecut_usage', JSON.stringify({ date: today, count: 0 }));
             }
         }
+
+        // Process Google OAuth redirect token
+        const hash = window.location.hash;
+        if (hash) {
+            const params = new URLSearchParams(hash.substring(1));
+            const accessToken = params.get('access_token');
+            if (accessToken) {
+                // Clean browser address URL bar hash
+                window.history.replaceState(null, null, window.location.pathname + window.location.search);
+                
+                // Fetch real profile information from official Google API
+                fetch(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${accessToken}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.email) {
+                            const googleUser = {
+                                email: data.email,
+                                name: data.name || data.email.split('@')[0],
+                                picture: data.picture,
+                                tier: 'free',
+                                apiKey: null
+                            };
+                            
+                            const registeredUsers = JSON.parse(localStorage.getItem('framecut_registered') || '[]');
+                            const existing = registeredUsers.find(u => u.email === data.email);
+                            if (existing) {
+                                googleUser.tier = existing.tier;
+                                googleUser.apiKey = existing.apiKey;
+                            } else {
+                                registeredUsers.push(googleUser);
+                                localStorage.setItem('framecut_registered', JSON.stringify(registeredUsers));
+                            }
+                            
+                            setUser(googleUser);
+                            localStorage.setItem('framecut_user', JSON.stringify(googleUser));
+                        }
+                    })
+                    .catch(err => console.error("Error calling Google UserInfo endpoint:", err));
+            }
+        }
     }, []);
 
     const login = (email, password) => {
@@ -39,7 +83,6 @@ export function AuthProvider({ children }) {
             apiKey: null
         };
         
-        // Mock credentials persistence
         const registeredUsers = JSON.parse(localStorage.getItem('framecut_registered') || '[]');
         const existing = registeredUsers.find(u => u.email === email);
         
@@ -70,6 +113,24 @@ export function AuthProvider({ children }) {
         setUser(mockUser);
         localStorage.setItem('framecut_user', JSON.stringify(mockUser));
         setShowAuthModal(false);
+    };
+
+    const loginWithGoogle = (clientIdInput) => {
+        const targetClientId = clientIdInput || googleClientId;
+        if (!targetClientId) {
+            alert("Please provide a valid Google Client ID.");
+            return;
+        }
+
+        // Save for ease of future logins
+        localStorage.setItem('framecut_google_client_id', targetClientId);
+        setGoogleClientId(targetClientId);
+
+        const redirectUri = window.location.origin + window.location.pathname;
+        const scope = encodeURIComponent('https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email');
+        const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${targetClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${scope}&include_granted_scopes=true&state=google-oauth`;
+        
+        window.location.href = authUrl;
     };
 
     const logout = () => {
@@ -140,6 +201,9 @@ export function AuthProvider({ children }) {
             setShowUpgradeModal,
             authMode,
             setAuthMode,
+            googleClientId,
+            setGoogleClientId,
+            loginWithGoogle,
             login,
             signup,
             logout,

@@ -12,6 +12,8 @@ export default function Modals() {
         setShowUpgradeModal,
         authMode,
         setAuthMode,
+        googleClientId,
+        loginWithGoogle,
         login,
         signup,
         upgradePlan
@@ -21,13 +23,9 @@ export default function Modals() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    // Google Auth Simulation State
-    const [googleAuthMode, setGoogleAuthMode] = useState('idle'); // 'idle' | 'choosing' | 'loading'
-    const googleAccounts = [
-        { name: 'John Doe', email: 'john.doe@gmail.com', initial: 'J' },
-        { name: 'Jane Miller', email: 'jane.miller@gmail.com', initial: 'M' },
-        { name: 'Guest Tester', email: 'guest.tester@gmail.com', initial: 'T' }
-    ];
+    // Real Google Auth Config State
+    const [showGoogleConfig, setShowGoogleConfig] = useState(false);
+    const [clientIdVal, setClientIdVal] = useState('');
 
     // Payment Form State
     const [selectedTier, setSelectedTier] = useState('pro'); // 'pro' | 'team'
@@ -49,9 +47,12 @@ export default function Modals() {
     // Reset Google auth states when modal closes or opens
     useEffect(() => {
         if (!showAuthModal) {
-            setGoogleAuthMode('idle');
+            setShowGoogleConfig(false);
+            setClientIdVal('');
+        } else {
+            setClientIdVal(googleClientId);
         }
-    }, [showAuthModal]);
+    }, [showAuthModal, googleClientId]);
 
     const handleAuthSubmit = (e) => {
         e.preventDefault();
@@ -65,12 +66,18 @@ export default function Modals() {
         setPassword('');
     };
 
-    const handleGoogleAccountSelect = (selectedEmail) => {
-        setGoogleAuthMode('loading');
-        setTimeout(() => {
-            login(selectedEmail, 'google_mock_password');
-            setGoogleAuthMode('idle');
-        }, 1200);
+    const handleGoogleAuthClick = () => {
+        if (googleClientId) {
+            loginWithGoogle(googleClientId);
+        } else {
+            setShowGoogleConfig(true);
+        }
+    };
+
+    const handleSaveAndLoginGoogle = (e) => {
+        e.preventDefault();
+        if (!clientIdVal) return;
+        loginWithGoogle(clientIdVal);
     };
 
     const handlePaymentSubmit = (e) => {
@@ -101,7 +108,7 @@ export default function Modals() {
                             </svg>
                         </button>
                         
-                        {googleAuthMode === 'choosing' ? (
+                        {showGoogleConfig ? (
                             <>
                                 <div className="modal-header">
                                     <svg width="24" height="24" viewBox="0 0 24 24" style={{ marginBottom: '12px' }}>
@@ -110,46 +117,44 @@ export default function Modals() {
                                         <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
                                         <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
                                     </svg>
-                                    <h3 className="modal-title" style={{ background: 'none', WebkitTextFillColor: 'initial', color: '#fff' }}>Sign in with Google</h3>
-                                    <p className="modal-subtitle">Choose an account to continue to FrameCut</p>
+                                    <h3 className="modal-title" style={{ background: 'none', WebkitTextFillColor: 'initial', color: '#fff' }}>Configure Google OAuth</h3>
+                                    <p className="modal-subtitle">Paste your Google Developer Client ID to perform authentic login redirects.</p>
                                 </div>
-                                <div className="google-account-list">
-                                    {googleAccounts.map((acc, idx) => (
-                                        <button key={idx} className="google-account-item" onClick={() => handleGoogleAccountSelect(acc.email)}>
-                                            <div className="google-avatar">{acc.initial}</div>
-                                            <div className="google-account-info">
-                                                <span className="google-account-name">{acc.name}</span>
-                                                <span className="google-account-email">{acc.email}</span>
-                                            </div>
-                                        </button>
-                                    ))}
-                                </div>
+                                <form onSubmit={handleSaveAndLoginGoogle}>
+                                    <div className="form-group">
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                            <label className="form-label" style={{ margin: 0 }}>Google Client ID</label>
+                                            <a 
+                                                href="https://console.cloud.google.com/apis/credentials" 
+                                                target="_blank" 
+                                                rel="noopener noreferrer" 
+                                                style={{ fontSize: '11px', color: '#06b6d4', textDecoration: 'none', fontWeight: '600' }}
+                                            >
+                                                Get ID
+                                            </a>
+                                        </div>
+                                        <input 
+                                            type="text" 
+                                            className="form-input" 
+                                            placeholder="xxxxxx-xxxxxx.apps.googleusercontent.com"
+                                            value={clientIdVal}
+                                            onChange={(e) => setClientIdVal(e.target.value)}
+                                            required 
+                                        />
+                                        <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px', lineHeight: '1.4' }}>
+                                            ⚠️ Ensure <strong>{typeof window !== 'undefined' ? window.location.origin : 'your site origin'}</strong> is registered in your Google Console under <em>Authorized JavaScript Origins</em> and <em>Redirect URIs</em>.
+                                        </p>
+                                    </div>
+                                    <button type="submit" className="modal-submit" style={{ marginTop: '12px' }}>
+                                        Save & Redirect to Google
+                                    </button>
+                                </form>
                                 <div className="modal-toggle-text">
-                                    <button className="modal-toggle-btn" onClick={() => setGoogleAuthMode('idle')} style={{ marginLeft: 0 }}>
+                                    <button className="modal-toggle-btn" onClick={() => setShowGoogleConfig(false)} style={{ marginLeft: 0 }}>
                                         Back to Email Login
                                     </button>
                                 </div>
                             </>
-                        ) : googleAuthMode === 'loading' ? (
-                            <div style={{ textAlign: 'center', padding: '60px 0' }}>
-                                <div className="google-spinner" style={{
-                                    width: '40px',
-                                    height: '40px',
-                                    border: '4px solid rgba(255,255,255,0.1)',
-                                    borderTop: '4px solid #4285F4',
-                                    borderRadius: '50%',
-                                    animation: 'spin 1s linear infinite',
-                                    margin: '0 auto 24px'
-                                }}></div>
-                                <style>{`
-                                    @keyframes spin {
-                                        0% { transform: rotate(0deg); }
-                                        100% { transform: rotate(360deg); }
-                                    }
-                                `}</style>
-                                <h3 className="modal-title" style={{ background: 'none', WebkitTextFillColor: 'initial', color: '#fff' }}>Connecting...</h3>
-                                <p className="modal-subtitle">Verifying security token with Google accounts</p>
-                            </div>
                         ) : (
                             <>
                                 <div className="modal-header">
@@ -163,7 +168,7 @@ export default function Modals() {
                                     </p>
                                 </div>
 
-                                <button className="btn-google" type="button" onClick={() => setGoogleAuthMode('choosing')}>
+                                <button className="btn-google" type="button" onClick={handleGoogleAuthClick}>
                                     <svg width="18" height="18" viewBox="0 0 24 24" style={{ marginRight: '2px' }}>
                                         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                                         <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -172,6 +177,17 @@ export default function Modals() {
                                     </svg>
                                     Continue with Google
                                 </button>
+
+                                {googleClientId && (
+                                    <div style={{ textAlign: 'center', marginTop: '-12px', marginBottom: '16px' }}>
+                                        <button 
+                                            onClick={() => setShowGoogleConfig(true)}
+                                            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '11px', cursor: 'pointer', textDecoration: 'underline' }}
+                                        >
+                                            Change OAuth Client ID
+                                        </button>
+                                    </div>
+                                )}
 
                                 <div className="auth-divider">or</div>
 
