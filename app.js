@@ -575,15 +575,21 @@
                 applyCleanMask(pixels, dilatedMask, mask, w, h, softness, srcData.data, targetColor, tolerance);
             } else {
                 // Global color removal
+                const toleranceSq = tolerance * tolerance;
+                const softnessRange = softness * 3;
+                const minTolerance = Math.max(0, tolerance - softnessRange);
+                const minToleranceSq = minTolerance * minTolerance;
+
                 for (let i = 0; i < pixels.length; i += 4) {
-                    const dist = colorDistance(
+                    const distSq = colorDistanceSq(
                         pixels[i], pixels[i + 1], pixels[i + 2],
                         targetColor.r, targetColor.g, targetColor.b
                     );
 
-                    if (dist <= tolerance) {
-                        if (softness > 0 && dist > tolerance - softness * 3) {
-                            const t = (dist - (tolerance - softness * 3)) / (softness * 3);
+                    if (distSq <= toleranceSq) {
+                        if (softness > 0 && distSq > minToleranceSq) {
+                            const dist = Math.sqrt(distSq);
+                            const t = (dist - minTolerance) / softnessRange;
                             pixels[i + 3] = Math.round(t * t * 255);
                         } else {
                             pixels[i + 3] = 0;
@@ -616,15 +622,17 @@
     function findSeedPoints(data, w, h, color, tolerance) {
         const seeds = [];
         const gridSize = Math.max(10, Math.floor(Math.min(w, h) / 20));
+        const toleranceSq = tolerance * tolerance;
+        const seedToleranceSq = (tolerance * 0.6) * (tolerance * 0.6);
 
         for (let y = gridSize; y < h - gridSize; y += gridSize) {
             for (let x = gridSize; x < w - gridSize; x += gridSize) {
                 const idx = (y * w + x) * 4;
-                const dist = colorDistance(
+                const distSq = colorDistanceSq(
                     data[idx], data[idx + 1], data[idx + 2],
                     color.r, color.g, color.b
                 );
-                if (dist <= tolerance * 0.6) {
+                if (distSq <= seedToleranceSq) {
                     // Verify it's in a solid region
                     let solidCount = 0;
                     const checkRadius = 5;
@@ -634,11 +642,11 @@
                             const ny = y + dy;
                             if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
                                 const ni = (ny * w + nx) * 4;
-                                const nd = colorDistance(
+                                const ndSq = colorDistanceSq(
                                     data[ni], data[ni + 1], data[ni + 2],
                                     color.r, color.g, color.b
                                 );
-                                if (nd <= tolerance) solidCount++;
+                                if (ndSq <= toleranceSq) solidCount++;
                             }
                         }
                     }
@@ -655,8 +663,11 @@
 
     function floodFillMask(data, w, h, startX, startY, color, tolerance, visited, mask) {
         const startPos = startX + startY * w;
+        if (visited[startPos]) return;
+
         const stack = [startPos];
         visited[startPos] = 1;
+        const toleranceSq = tolerance * tolerance;
 
         while (stack.length > 0) {
             const pos = stack.pop();
@@ -664,12 +675,12 @@
             const y = Math.floor(pos / w);
 
             const idx = pos * 4;
-            const dist = colorDistance(
+            const distSq = colorDistanceSq(
                 data[idx], data[idx + 1], data[idx + 2],
                 color.r, color.g, color.b
             );
 
-            if (dist <= tolerance && data[idx + 3] > 0) {
+            if (distSq <= toleranceSq && data[idx + 3] > 0) {
                 mask[pos] = 1;
 
                 const pushNeighbor = (npos) => {
@@ -695,7 +706,7 @@
 
     function dilateMask(mask, w, h, radius, data, color, tolerance) {
         const dilated = new Uint8Array(mask);
-        const tightTolerance = tolerance * 1.3;
+        const tightToleranceSq = (tolerance * 1.3) * (tolerance * 1.3);
 
         for (let pass = 0; pass < radius; pass++) {
             const prevMask = new Uint8Array(dilated);
@@ -711,12 +722,12 @@
                     if (adjCount === 0) continue;
 
                     const idx = pos * 4;
-                    const dist = colorDistance(
+                    const distSq = colorDistanceSq(
                         data[idx], data[idx + 1], data[idx + 2],
                         color.r, color.g, color.b
                     );
 
-                    if (dist <= tightTolerance) {
+                    if (distSq <= tightToleranceSq) {
                         dilated[pos] = 2;
                     }
                 }
@@ -732,18 +743,36 @@
 
         // Horizontal pass
         for (let y = 0; y < h; y++) {
+            const rowOffset = y * w;
             let sum = 0;
             for (let x = -R; x <= R; x++) {
-                const val = mask[y * w + Math.min(Math.max(x, 0), w - 1)];
+                const val = mask[rowOffset + Math.min(Math.max(x, 0), w - 1)];
                 sum += val;
             }
-            for (let x = 0; x < w; x++) {
-                temp[y * w + x] = sum / (2 * R + 1);
-                
+            // First R pixels
+            for (let x = 0; x < Math.min(R, w); x++) {
+                temp[rowOffset + x] = sum / (2 * R + 1);
                 const leaveX = x - R;
                 const enterX = x + R + 1;
-                const leaveVal = mask[y * w + Math.min(Math.max(leaveX, 0), w - 1)];
-                const enterVal = mask[y * w + Math.min(Math.max(enterX, 0), w - 1)];
+                const leaveVal = mask[rowOffset + Math.max(leaveX, 0)];
+                const enterVal = mask[rowOffset + Math.min(enterX, w - 1)];
+                sum += enterVal - leaveVal;
+            }
+            // Middle pixels
+            const endMiddle = w - R - 1;
+            for (let x = R; x <= endMiddle; x++) {
+                temp[rowOffset + x] = sum / (2 * R + 1);
+                const leaveVal = mask[rowOffset + x - R];
+                const enterVal = mask[rowOffset + x + R + 1];
+                sum += enterVal - leaveVal;
+            }
+            // Last R pixels
+            for (let x = Math.max(R, w - R); x < w; x++) {
+                temp[rowOffset + x] = sum / (2 * R + 1);
+                const leaveX = x - R;
+                const enterX = x + R + 1;
+                const leaveVal = mask[rowOffset + Math.max(leaveX, 0)];
+                const enterVal = mask[rowOffset + Math.min(enterX, w - 1)];
                 sum += enterVal - leaveVal;
             }
         }
@@ -755,13 +784,30 @@
                 const val = temp[Math.min(Math.max(y, 0), h - 1) * w + x];
                 sum += val;
             }
-            for (let y = 0; y < h; y++) {
+            // First R pixels
+            for (let y = 0; y < Math.min(R, h); y++) {
                 blurred[y * w + x] = sum / (2 * R + 1);
-                
                 const leaveY = y - R;
                 const enterY = y + R + 1;
-                const leaveVal = temp[Math.min(Math.max(leaveY, 0), h - 1) * w + x];
-                const enterVal = temp[Math.min(Math.max(enterY, 0), h - 1) * w + x];
+                const leaveVal = temp[Math.max(leaveY, 0) * w + x];
+                const enterVal = temp[Math.min(enterY, h - 1) * w + x];
+                sum += enterVal - leaveVal;
+            }
+            // Middle pixels
+            const endMiddle = h - R - 1;
+            for (let y = R; y <= endMiddle; y++) {
+                blurred[y * w + x] = sum / (2 * R + 1);
+                const leaveVal = temp[(y - R) * w + x];
+                const enterVal = temp[(y + R + 1) * w + x];
+                sum += enterVal - leaveVal;
+            }
+            // Last R pixels
+            for (let y = Math.max(R, h - R); y < h; y++) {
+                blurred[y * w + x] = sum / (2 * R + 1);
+                const leaveY = y - R;
+                const enterY = y + R + 1;
+                const leaveVal = temp[Math.max(leaveY, 0) * w + x];
+                const enterVal = temp[Math.min(enterY, h - 1) * w + x];
                 sum += enterVal - leaveVal;
             }
         }
@@ -797,6 +843,7 @@
         }
 
         // Pass 2: Conservative cleanup — only 2 passes max
+        const cleanToleranceSq = (tolerance * 1.2) * (tolerance * 1.2);
         for (let pass = 0; pass < 2; pass++) {
             let changed = false;
             for (let y = 1; y < h - 1; y++) {
@@ -814,12 +861,12 @@
 
                     if (transN < 3) continue;
 
-                    const dist = colorDistance(
+                    const distSq = colorDistanceSq(
                         pixels[px], pixels[px + 1], pixels[px + 2],
                         color.r, color.g, color.b
                     );
 
-                    if (dist <= tolerance * 1.2) {
+                    if (distSq <= cleanToleranceSq) {
                         pixels[px + 3] = 0;
                         changed = true;
                     }
@@ -867,6 +914,13 @@
         const dg = g1 - g2;
         const db = b1 - b2;
         return Math.sqrt(dr * dr + dg * dg + db * db);
+    }
+
+    function colorDistanceSq(r1, g1, b1, r2, g2, b2) {
+        const dr = r1 - r2;
+        const dg = g1 - g2;
+        const db = b1 - b2;
+        return dr * dr + dg * dg + db * db;
     }
 
     function rgbToHex(r, g, b) {
