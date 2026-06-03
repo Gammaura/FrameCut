@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FrameCut — PNG Frame Transparency Maker</title>
+    <meta name="description" content="Instantly make photo frame slots transparent. Upload your PNG frame, auto-detect colored areas, and export with transparency.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-bg">
+        <div class="glow glow-1"></div>
+        <div class="glow glow-2"></div>
+        <div class="glow glow-3"></div>
+    </div>
+
+    <header class="app-header">
+        <div class="logo" onclick="window.location.href='/'" style="cursor: pointer;">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                <rect x="2" y="2" width="28" height="28" rx="6" stroke="url(#logoGrad)" stroke-width="2.5" fill="none"/>
+                <rect x="7" y="7" width="8" height="8" rx="2" fill="url(#logoGrad)" opacity="0.6"/>
+                <rect x="17" y="7" width="8" height="8" rx="2" fill="url(#logoGrad)" opacity="0.4"/>
+                <rect x="7" y="17" width="8" height="8" rx="2" fill="url(#logoGrad)" opacity="0.4"/>
+                <rect x="17" y="17" width="8" height="8" rx="2" fill="url(#logoGrad)" opacity="0.6"/>
+                <defs>
+                    <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32">
+                        <stop offset="0%" stop-color="#a78bfa"/>
+                        <stop offset="100%" stop-color="#06b6d4"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+            <span class="logo-text">FrameCut</span>
+        </div>
+        <p class="tagline">Auto-detect & transparentize frame slots</p>
+    </header>
+
+    <main class="app-main">
+        <!-- Upload Section -->
+        <section id="upload-section" class="section upload-section">
+            <div class="upload-zone" id="upload-zone">
+                <div class="upload-icon">
+                    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                        <path d="M32 8L32 40" stroke="url(#upGrad)" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M20 20L32 8L44 20" stroke="url(#upGrad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M8 40V48C8 52.4183 11.5817 56 16 56H48C52.4183 56 56 52.4183 56 48V40" stroke="url(#upGrad)" stroke-width="3" stroke-linecap="round"/>
+                        <defs>
+                            <linearGradient id="upGrad" x1="32" y1="8" x2="32" y2="56">
+                                <stop offset="0%" stop-color="#a78bfa"/>
+                                <stop offset="100%" stop-color="#06b6d4"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <h2 class="upload-title">Drop your frame here</h2>
+                <p class="upload-desc">or click to browse • PNG format supported</p>
+                <input type="file" id="file-input" accept="image/png" hidden>
+            </div>
+        </section>
+
+        <!-- Editor Section -->
+        <section id="editor-section" class="section editor-section hidden">
+            <div class="editor-layout">
+                <!-- Controls Panel -->
+                <div class="controls-panel glass-panel">
+                    <h3 class="panel-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                        Settings
+                    </h3>
+
+                    <div class="control-group">
+                        <label class="control-label">Target Color</label>
+                        <p class="control-hint">Click on the image to pick a color, or use auto-detect</p>
+                        <div class="color-display">
+                            <input type="color" id="color-input" style="display: none;">
+                            <div class="color-swatch" id="color-swatch" style="cursor: pointer;" title="Pick custom color"></div>
+                            <span class="color-hex" id="color-hex">#000000</span>
+                        </div>
+                        <button class="btn btn-outline btn-sm" id="btn-auto-detect">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                            Auto Detect
+                        </button>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">
+                            Tolerance
+                            <span class="control-value" id="tolerance-value">35</span>
+                        </label>
+                        <p class="control-hint">Higher = more colors removed</p>
+                        <input type="range" class="slider" id="tolerance-slider" min="1" max="100" value="35">
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">
+                            Edge Softness
+                            <span class="control-value" id="softness-value">2</span>
+                        </label>
+                        <p class="control-hint">Smooth edges for cleaner result</p>
+                        <input type="range" class="slider" id="softness-slider" min="0" max="10" value="2">
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label checkbox-label">
+                            <input type="checkbox" id="contiguous-check" checked>
+                            <span class="checkbox-custom"></span>
+                            Contiguous Only
+                        </label>
+                        <p class="control-hint">Only remove connected areas of the same color</p>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" id="btn-apply">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                            Apply
+                        </button>
+                        <button class="btn btn-outline" id="btn-reset">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                            Reset
+                        </button>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <button class="btn btn-download" id="btn-download" disabled>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Download PNG
+                    </button>
+
+                    <button class="btn btn-outline btn-sm" id="btn-new" style="margin-top: 8px; width: 100%;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        Upload New Frame
+                    </button>
+                </div>
+
+                <!-- Canvas Area -->
+                <div class="canvas-area">
+                    <div class="canvas-tabs">
+                        <button class="tab active" data-tab="original" id="tab-original">Original</button>
+                        <button class="tab" data-tab="result" id="tab-result">Result</button>
+                    </div>
+                    <div class="canvas-wrapper" id="canvas-wrapper">
+                        <div class="checkerboard-bg"></div>
+                        <div class="canvas-container" id="canvas-container">
+                            <canvas id="main-canvas"></canvas>
+                            <div class="canvas-crosshair" id="canvas-crosshair" style="display:none"></div>
+                        </div>
+                        <div class="magnifier-loupe" id="magnifier-loupe" style="display:none">
+                            <canvas id="loupe-canvas" width="120" height="120"></canvas>
+                            <div class="loupe-crosshair"></div>
+                        </div>
+                        <div class="zoom-info" id="zoom-info">100%</div>
+                    </div>
+                    <div class="canvas-toolbar">
+                        <button class="toolbar-btn" id="btn-zoom-in" title="Zoom In">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                        </button>
+                        <button class="toolbar-btn" id="btn-zoom-out" title="Zoom Out">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                        </button>
+                        <button class="toolbar-btn" id="btn-zoom-fit" title="Fit to View">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Processing Overlay -->
+        <div class="processing-overlay hidden" id="processing-overlay">
+            <div class="processing-content glass-panel">
+                <div class="spinner"></div>
+                <p class="processing-text">Processing your frame...</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <p>Built with ❤️ by <strong>Gammaura</strong></p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
