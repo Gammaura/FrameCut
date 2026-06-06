@@ -1154,8 +1154,48 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
             showToast('Professional AI Background removed successfully!', 'success');
             
         } catch (err) {
-            console.warn('Professional AI failed, falling back to Fast AI (MediaPipe)...', err);
-            await applyMediaPipeCutout(img, imgData);
+            console.warn('Primary CDN failed, retrying with backup CDN...', err);
+            try {
+                // Retry with unpkg CDN as backup
+                const module2 = await import('https://unpkg.com/@imgly/background-removal/dist/index.mjs');
+                const removeBackground2 = module2.removeBackground;
+                setProcessing({ visible: true, progress: 30, title: 'Retrying with backup AI...' });
+                
+                const processedBlob2 = await removeBackground2(img.src, {
+                    debug: false,
+                    progress: (key, current, total) => {
+                        const percent = Math.round((current / total) * 100);
+                        const overallPercent = 30 + Math.round((percent / 100) * 65);
+                        setProcessing({ visible: true, progress: overallPercent, title: `Processing... (${percent}%)` });
+                    }
+                });
+                
+                setProcessing({ visible: true, progress: 95, title: 'Rendering final output...' });
+                const resultImg2 = new Image();
+                await new Promise((resolve, reject) => {
+                    resultImg2.onload = resolve;
+                    resultImg2.onerror = reject;
+                    resultImg2.src = URL.createObjectURL(processedBlob2);
+                });
+                
+                const w2 = imgData.width;
+                const h2 = imgData.height;
+                const tempCanvas2 = document.createElement('canvas');
+                tempCanvas2.width = w2;
+                tempCanvas2.height = h2;
+                const tempCtx2 = tempCanvas2.getContext('2d');
+                tempCtx2.drawImage(resultImg2, 0, 0, w2, h2);
+                const cutoutResult2 = tempCtx2.getImageData(0, 0, w2, h2);
+                URL.revokeObjectURL(resultImg2.src);
+                
+                setResultImageData(cutoutResult2);
+                setCurrentView('result');
+                setProcessing({ visible: false, progress: 0 });
+                showToast('AI Background removed successfully!', 'success');
+            } catch (err2) {
+                console.warn('Backup CDN also failed, falling back to Fast AI (MediaPipe)...', err2);
+                await applyMediaPipeCutout(img, imgData);
+            }
         }
     };
 
@@ -1966,16 +2006,13 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
             {/* Application Header Navigation */}
             <header className="app-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '16px 24px', boxSizing: 'border-box', borderBottom: '1px solid var(--border-subtle)', background: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(8px)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <Link href="/editor" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '13px', fontWeight: '700', padding: '6px 14px', borderRadius: '20px', border: '1px solid var(--border-subtle)', background: 'rgba(9, 9, 11, 0.03)', transition: 'all 0.2s', cursor: 'pointer' }} className="dropdown-item-hover">
-                        <span>← Dashboard</span>
-                    </Link>
                     <Link href="/editor" className="logo" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
                         <span style={{ textTransform: 'uppercase', letterSpacing: '0.04em', display: 'inline-flex', alignItems: 'center', fontSize: '20px', fontFamily: 'var(--font-outfit), sans-serif' }}>
                             <strong style={{ fontWeight: '900', color: '#09090b' }}>FRAME</strong>
                             <span style={{ fontWeight: '300', color: '#94a3b8' }}>CUT</span>
                         </span>
                     </Link>
-                    <p className="tagline" style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>Auto-detect & transparentize frame slots</p>
+                    <p className="tagline" style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>AI-powered background removal for any image</p>
                 </div>
 
                 <div className="editor-auth-status" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
