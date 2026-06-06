@@ -172,7 +172,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
 
     // 4. Change Background
     const [selectedBgType, setSelectedBgType] = useState('color'); // 'color' | 'gradient' | 'image'
-    const [selectedBgColor, setSelectedBgColor] = useState('#a78bfa');
+    const [selectedBgColor, setSelectedBgColor] = useState('#3b82f6');
     const [selectedBgGradient, setSelectedBgGradient] = useState('cosmic');
     const [selectedBgImage, setSelectedBgImage] = useState('studio');
     const [bgImageObjects, setBgImageObjects] = useState({});
@@ -324,8 +324,8 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             } else if (selectedBgType === 'gradient') {
                 const gradColors = {
-                    cosmic: ['#06b6d4', '#a78bfa'],
-                    warm: ['#f472b6', '#a78bfa'],
+                    cosmic: ['#06b6d4', '#60a5fa'],
+                    warm: ['#f472b6', '#3b82f6'],
                     neon: ['#06b6d4', '#34d399'],
                     sunset: ['#f43f5e', '#fbbf24']
                 };
@@ -449,7 +449,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
             ctx.textBaseline = 'middle';
             
             if (item.id === selectedTextId) {
-                ctx.strokeStyle = '#a78bfa';
+                ctx.strokeStyle = '#3b82f6';
                 ctx.lineWidth = 2;
                 const textWidth = ctx.measureText(item.text).width;
                 ctx.strokeRect(item.x - textWidth / 2 - 10, item.y - item.size / 2 - 6, textWidth + 20, item.size + 12);
@@ -1921,35 +1921,34 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
 
     if (!user) {
         return (
-            <div className="landing-page-root" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', justifyContent: 'center', alignItems: 'center', padding: '24px', background: '#0A0B0C', color: '#fff', position: 'relative', overflow: 'hidden' }}>
+            <div className="landing-page-root" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', justifyContent: 'center', alignItems: 'center', padding: '24px', background: 'var(--bg-color)', color: 'var(--text-color)', position: 'relative', overflow: 'hidden' }}>
                 <div className="landing-bg">
-                    <div className="glow glow-1" style={{ background: '#FF5500', opacity: 0.15 }}></div>
-                    <div className="glow glow-2" style={{ background: '#121315', opacity: 0.1 }}></div>
+                    <div className="glow glow-1"></div>
+                    <div className="glow glow-2"></div>
                 </div>
                 
-                <div className="crop-box" style={{ maxWidth: '480px', width: '100%', padding: '40px 32px', textAlign: 'center', background: '#121315', border: '1px solid #2E3035', position: 'relative', borderRadius: '0' }}>
-                    <div className="crop-corners-inner"></div>
+                <div style={{ maxWidth: '480px', width: '100%', padding: '40px 32px', textAlign: 'center', background: 'var(--panel-bg)', border: '1px solid var(--panel-border)', position: 'relative', borderRadius: '16px', boxShadow: '0 10px 30px rgba(0,0,0,0.03)', backdropFilter: 'blur(8px)' }}>
                     
-                    <span className="logo-brand" style={{ marginBottom: '24px', display: 'inline-flex', gap: '4px', fontSize: '28px', fontFamily: 'var(--font-syne), sans-serif' }}>
-                        <strong style={{ fontWeight: '900', color: '#fff', letterSpacing: '-0.5px' }}>FRAME</strong>
-                        <span style={{ fontWeight: '300', color: '#FF5500', letterSpacing: '-0.5px' }}>CUT</span>
+                    <span style={{ marginBottom: '24px', display: 'inline-flex', gap: '4px', fontSize: '28px', fontFamily: 'var(--font-syne), sans-serif' }}>
+                        <strong style={{ fontWeight: '900', color: '#475569', letterSpacing: '-0.5px' }}>FRAME</strong>
+                        <span style={{ fontWeight: '300', color: '#94a3b8', letterSpacing: '-0.5px' }}>CUT</span>
                     </span>
                     
-                    <h2 style={{ fontSize: '20px', marginBottom: '16px', textTransform: 'uppercase', fontFamily: 'var(--font-syne), sans-serif', color: '#fff', letterSpacing: '0.5px' }}>Authentication Required</h2>
-                    <p style={{ fontSize: '14px', marginBottom: '32px', lineHeight: '1.6', fontFamily: 'var(--font-outfit), sans-serif', color: '#9595b0' }}>
+                    <h2 style={{ fontSize: '20px', marginBottom: '16px', textTransform: 'uppercase', fontFamily: 'var(--font-syne), sans-serif', color: 'var(--text-color)', letterSpacing: '0.5px' }}>Authentication Required</h2>
+                    <p style={{ fontSize: '14px', marginBottom: '32px', lineHeight: '1.6', fontFamily: 'var(--font-outfit), sans-serif', color: 'var(--text-muted)' }}>
                         To access FrameCut Studio, please sign in with your account first. 
-                        New accounts receive <strong style={{ color: '#FF5500' }}>20 free tokens</strong> immediately.
+                        New accounts receive <strong style={{ color: '#2563eb' }}>20 free tokens</strong> immediately.
                     </p>
                     
                     <button 
                         onClick={() => { setAuthMode('login'); setShowAuthModal(true); }}
-                        className="editor-btn editor-btn-primary"
-                        style={{ width: '100%', background: '#FF5500', color: '#000', border: 'none', padding: '12px 24px', fontWeight: 'bold', fontFamily: 'var(--font-bricolage), sans-serif', cursor: 'pointer', borderRadius: '0', textTransform: 'uppercase' }}
+                        className="btn btn-primary"
+                        style={{ width: '100%', background: 'var(--primary-grad)', color: '#fff', border: 'none', padding: '12px 24px', fontWeight: 'bold', cursor: 'pointer', borderRadius: '999px', textTransform: 'uppercase', fontSize: '14px' }}
                     >
                         Sign In / Sign Up
                     </button>
                     
-                    <a href="/" style={{ display: 'block', marginTop: '20px', color: '#9595b0', fontSize: '13px', textDecoration: 'none', fontFamily: 'var(--font-outfit), sans-serif', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#fff'} onMouseLeave={(e) => e.target.style.color = '#9595b0'}>
+                    <a href="/" style={{ display: 'block', marginTop: '20px', color: 'var(--text-muted)', fontSize: '13px', textDecoration: 'none', fontFamily: 'var(--font-outfit), sans-serif', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = 'var(--text-color)'} onMouseLeave={(e) => e.target.style.color = 'var(--text-muted)'}>
                         ← Back to Home
                     </a>
                 </div>
@@ -1966,15 +1965,15 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
             </div>
 
             {/* Application Header Navigation */}
-            <header className="app-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '16px 24px', boxSizing: 'border-box', borderBottom: '1px solid var(--panel-border)', background: 'rgba(9, 9, 11, 0.5)', backdropFilter: 'blur(8px)' }}>
+            <header className="app-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '16px 24px', boxSizing: 'border-box', borderBottom: '1px solid var(--border-subtle)', background: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(8px)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <Link href="/editor" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', textDecoration: 'none', fontSize: '13px', fontWeight: '700', padding: '6px 14px', borderRadius: '20px', border: '1px solid var(--panel-border)', background: 'rgba(255,255,255,0.03)', transition: 'all 0.2s', cursor: 'pointer' }} className="dropdown-item-hover">
+                    <Link href="/editor" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '13px', fontWeight: '700', padding: '6px 14px', borderRadius: '20px', border: '1px solid var(--border-subtle)', background: 'rgba(9, 9, 11, 0.03)', transition: 'all 0.2s', cursor: 'pointer' }} className="dropdown-item-hover">
                         <span>← Dashboard</span>
                     </Link>
                     <Link href="/editor" className="logo" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
                         <span style={{ textTransform: 'uppercase', letterSpacing: '0.04em', display: 'inline-flex', alignItems: 'center', fontSize: '20px', fontFamily: 'var(--font-syne), sans-serif' }}>
-                            <strong style={{ fontWeight: '900', color: '#f1f5f9' }}>FRAME</strong>
-                            <span style={{ fontWeight: '300', color: '#ff5500' }}>CUT</span>
+                            <strong style={{ fontWeight: '900', color: '#09090b' }}>FRAME</strong>
+                            <span style={{ fontWeight: '300', color: '#94a3b8' }}>CUT</span>
                         </span>
                     </Link>
                     <p className="tagline" style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>Auto-detect & transparentize frame slots</p>
@@ -1984,10 +1983,10 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                     {user ? (
                         <>
                             <div className="exports-limit-badge" style={{ fontSize: '13px', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', padding: '6px 14px', borderRadius: '999px', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-muted)' }}>
-                                <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: user.tier === 'free' ? '#9595b0' : user.tier === 'pro' ? '#a78bfa' : '#06b6d4' }}></span>
+                                <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: user.tier === 'free' ? '#9595b0' : user.tier === 'pro' ? '#3b82f6' : '#06b6d4' }}></span>
                                 <span>Tier: <strong style={{ color: 'var(--text-primary)' }}>{user.tier.toUpperCase()}</strong></span>
                                 <span style={{ borderLeft: '1px solid var(--border-subtle)', paddingLeft: '10px', color: 'var(--text-muted)' }}>
-                                    Tokens: <strong style={{ color: 'var(--accent, #FF5500)' }}>{user.tokens ?? 0}</strong>
+                                    Tokens: <strong style={{ color: '#3b82f6' }}>{user.tokens ?? 0}</strong>
                                 </span>
                             </div>
                             {user.tier === 'free' && (
@@ -2780,7 +2779,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                                                 <path d="M8 40V48C8 52.4183 11.5817 56 16 56H48C52.4183 56 56 52.4183 56 48V40" stroke="url(#upGrad)" strokeWidth="3" strokeLinecap="round"/>
                                                 <defs>
                                                     <linearGradient id="upGrad" x1="32" y1="8" x2="32" y2="56">
-                                                        <stop offset="0%" stopColor="#a78bfa"/>
+                                                        <stop offset="0%" stopColor="#3b82f6"/>
                                                         <stop offset="100%" stopColor="#06b6d4"/>
                                                     </linearGradient>
                                                 </defs>
@@ -2854,7 +2853,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                                                         top: `${lastClickedPixel.y}px`,
                                                         width: '12px',
                                                         height: '12px',
-                                                        border: '2px solid #a78bfa',
+                                                        border: '2px solid #3b82f6',
                                                         borderRadius: '50%',
                                                         transform: 'translate(-50%, -50%)',
                                                         pointerEvents: 'none'

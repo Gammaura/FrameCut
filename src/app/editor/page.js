@@ -158,35 +158,34 @@ export default function Page() {
 
     if (!user) {
         return (
-            <div className="landing-page-root" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', justifyContent: 'center', alignItems: 'center', padding: '24px', background: '#0A0B0C', color: '#fff', position: 'relative', overflow: 'hidden' }}>
+            <div className="landing-page-root" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', justifyContent: 'center', alignItems: 'center', padding: '24px', background: 'var(--bg-color)', color: 'var(--text-color)', position: 'relative', overflow: 'hidden' }}>
                 <div className="landing-bg">
-                    <div className="glow glow-1" style={{ background: '#FF5500', opacity: 0.15 }}></div>
-                    <div className="glow glow-2" style={{ background: '#121315', opacity: 0.1 }}></div>
+                    <div className="glow glow-1"></div>
+                    <div className="glow glow-2"></div>
                 </div>
                 
-                <div className="crop-box" style={{ maxWidth: '480px', width: '100%', padding: '40px 32px', textAlign: 'center', background: '#121315', border: '1px solid #2E3035', position: 'relative', borderRadius: '0' }}>
-                    <div className="crop-corners-inner"></div>
+                <div style={{ maxWidth: '480px', width: '100%', padding: '40px 32px', textAlign: 'center', background: 'var(--panel-bg)', border: '1px solid var(--panel-border)', position: 'relative', borderRadius: '16px', boxShadow: '0 10px 30px rgba(0,0,0,0.03)', backdropFilter: 'blur(8px)' }}>
                     
-                    <span className="logo-brand" style={{ marginBottom: '24px', display: 'inline-flex', gap: '4px', fontSize: '28px', fontFamily: 'var(--font-syne), sans-serif' }}>
-                        <strong style={{ fontWeight: '900', color: '#fff', letterSpacing: '-0.5px' }}>FRAME</strong>
-                        <span style={{ fontWeight: '300', color: '#FF5500', letterSpacing: '-0.5px' }}>CUT</span>
+                    <span style={{ marginBottom: '24px', display: 'inline-flex', gap: '4px', fontSize: '28px', fontFamily: 'var(--font-syne), sans-serif' }}>
+                        <strong style={{ fontWeight: '900', color: '#475569', letterSpacing: '-0.5px' }}>FRAME</strong>
+                        <span style={{ fontWeight: '300', color: '#94a3b8', letterSpacing: '-0.5px' }}>CUT</span>
                     </span>
                     
-                    <h2 style={{ fontSize: '20px', marginBottom: '16px', textTransform: 'uppercase', fontFamily: 'var(--font-syne), sans-serif', color: '#fff', letterSpacing: '0.5px' }}>Authentication Required</h2>
-                    <p style={{ fontSize: '14px', marginBottom: '32px', lineHeight: '1.6', fontFamily: 'var(--font-outfit), sans-serif', color: '#9595b0' }}>
+                    <h2 style={{ fontSize: '20px', marginBottom: '16px', textTransform: 'uppercase', fontFamily: 'var(--font-syne), sans-serif', color: 'var(--text-color)', letterSpacing: '0.5px' }}>Authentication Required</h2>
+                    <p style={{ fontSize: '14px', marginBottom: '32px', lineHeight: '1.6', fontFamily: 'var(--font-outfit), sans-serif', color: 'var(--text-muted)' }}>
                         To access FrameCut Studio, please sign in with your account first. 
-                        New accounts receive <strong style={{ color: '#FF5500' }}>20 free tokens</strong> immediately.
+                        New accounts receive <strong style={{ color: '#7c3aed' }}>20 free tokens</strong> immediately.
                     </p>
                     
                     <button 
                         onClick={() => { setShowAuthModal(true); }}
-                        className="editor-btn editor-btn-primary"
-                        style={{ width: '100%', background: '#FF5500', color: '#000', border: 'none', padding: '12px 24px', fontWeight: 'bold', fontFamily: 'var(--font-bricolage), sans-serif', cursor: 'pointer', borderRadius: '0', textTransform: 'uppercase' }}
+                        className="btn btn-primary"
+                        style={{ width: '100%', background: 'var(--primary-grad)', color: '#fff', border: 'none', padding: '12px 24px', fontWeight: 'bold', cursor: 'pointer', borderRadius: '999px', textTransform: 'uppercase', fontSize: '14px' }}
                     >
                         Sign In / Sign Up
                     </button>
                     
-                    <a href="/" style={{ display: 'block', marginTop: '20px', color: '#9595b0', fontSize: '13px', textDecoration: 'none', fontFamily: 'var(--font-outfit), sans-serif', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#fff'} onMouseLeave={(e) => e.target.style.color = '#9595b0'}>
+                    <a href="/" style={{ display: 'block', marginTop: '20px', color: 'var(--text-muted)', fontSize: '13px', textDecoration: 'none', fontFamily: 'var(--font-outfit), sans-serif', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = 'var(--text-color)'} onMouseLeave={(e) => e.target.style.color = 'var(--text-muted)'}>
                         ← Back to Home
                     </a>
                 </div>
@@ -200,8 +199,8 @@ export default function Page() {
             <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 32px', background: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #e2e8f0', position: 'sticky', top: 0, zIndex: 100 }}>
                 <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
                     <span style={{ textTransform: 'uppercase', letterSpacing: '0.04em', display: 'inline-flex', alignItems: 'center', fontSize: '20px', fontFamily: 'var(--font-syne), sans-serif' }}>
-                        <strong style={{ fontWeight: '900', color: '#0A0B0C' }}>FRAME</strong>
-                        <span style={{ fontWeight: '300', color: '#FF5500' }}>CUT</span>
+                        <strong style={{ fontWeight: '900', color: '#475569' }}>FRAME</strong>
+                        <span style={{ fontWeight: '300', color: '#94a3b8' }}>CUT</span>
                     </span>
                 </Link>
 

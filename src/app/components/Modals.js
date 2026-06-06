@@ -14,14 +14,8 @@ export default function Modals() {
         setAuthMode,
         googleClientId,
         loginWithGoogle,
-        login,
-        signup,
         upgradePlan
     } = useAuth();
-
-    // Auth Form State
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
 
     // Real Google Auth Config State
     const [showGoogleConfig, setShowGoogleConfig] = useState(false);
@@ -54,17 +48,7 @@ export default function Modals() {
         }
     }, [showAuthModal, googleClientId]);
 
-    const handleAuthSubmit = (e) => {
-        e.preventDefault();
-        if (!email || !password) return;
-        if (authMode === 'login') {
-            login(email, password);
-        } else {
-            signup(email, password);
-        }
-        setEmail('');
-        setPassword('');
-    };
+
 
     const handleGoogleAuthClick = () => {
         if (googleClientId) {
@@ -151,7 +135,7 @@ export default function Modals() {
                                 </form>
                                 <div className="modal-toggle-text">
                                     <button className="modal-toggle-btn" onClick={() => setShowGoogleConfig(false)} style={{ marginLeft: 0 }}>
-                                        Back to Email Login
+                                        Back
                                     </button>
                                 </div>
                             </>
@@ -189,45 +173,9 @@ export default function Modals() {
                                     </div>
                                 )}
 
-                                <div className="auth-divider">or</div>
-
-                                <form onSubmit={handleAuthSubmit}>
-                                    <div className="form-group">
-                                        <label className="form-label">Email Address</label>
-                                        <input 
-                                            type="email" 
-                                            className="form-input" 
-                                            placeholder="name@domain.com"
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            required 
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="form-label">Password</label>
-                                        <input 
-                                            type="password" 
-                                            className="form-input" 
-                                            placeholder="••••••••"
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
-                                            required 
-                                        />
-                                    </div>
-                                    <button type="submit" className="modal-submit" style={{ marginTop: '12px' }}>
-                                        {authMode === 'login' ? 'Log In' : 'Sign Up'}
-                                    </button>
-                                </form>
-
-                                <div className="modal-toggle-text">
-                                    {authMode === 'login' ? "Don't have an account?" : "Already have an account?"}
-                                    <button 
-                                        className="modal-toggle-btn"
-                                        onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
-                                    >
-                                        {authMode === 'login' ? 'Sign up' : 'Log in'}
-                                    </button>
-                                </div>
+                                <p style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center', lineHeight: '1.5', marginTop: '8px' }}>
+                                    New accounts automatically receive <strong style={{ color: 'var(--accent-purple, #7c3aed)' }}>20 free tokens</strong>.
+                                </p>
                             </>
                         )}
                     </div>

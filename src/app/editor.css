@@ -17,22 +17,22 @@
     --text-secondary: #52525b;
     --text-muted: #71717a;
 
-    --accent-purple: #7c3aed;
-    --accent-cyan: #0891b2;
+    --accent-purple: #2563eb;
+    --accent-cyan: #06b6d4;
     --accent-pink: #db2777;
     --accent-green: #16a34a;
 
-    --gradient-primary: linear-gradient(135deg, #7c3aed 0%, #0891b2 100%);
-    --gradient-warm: linear-gradient(135deg, #db2777 0%, #7c3aed 100%);
-    --gradient-cool: linear-gradient(135deg, #0891b2 0%, #16a34a 100%);
+    --gradient-primary: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%);
+    --gradient-warm: linear-gradient(135deg, #2563eb 0%, #0284c7 100%);
+    --gradient-cool: linear-gradient(135deg, #06b6d4 0%, #16a34a 100%);
 
     --border-subtle: #e4e4e7;
-    --border-active: #7c3aed;
+    --border-active: #2563eb;
 
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
     --shadow-lg: 0 12px 36px rgba(0, 0, 0, 0.12);
-    --shadow-glow: 0 0 30px rgba(124, 58, 237, 0.08);
+    --shadow-glow: 0 0 30px rgba(37, 99, 235, 0.08);
 
     --radius-sm: 8px;
     --radius-md: 12px;
@@ -43,8 +43,22 @@
     --transition-normal: 0.25s ease;
     --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
-    --font-sans: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-sans: var(--font-outfit), 'Outfit', -apple-system, sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
+    --font-display: var(--font-syne), 'Syne', sans-serif;
+}
+
+.panel-title, 
+.upload-title, 
+.option-card-title, 
+.logo-brand, 
+.logo-strong, 
+.modal-title,
+.editor-page-root h1, 
+.editor-page-root h2, 
+.editor-page-root h3, 
+.editor-page-root h4 {
+    font-family: var(--font-display), sans-serif;
 }
 
 .editor-page-root {
@@ -820,7 +834,7 @@
 }
 
 .toast.info {
-    background: linear-gradient(135deg, #7c3aed, #a78bfa);
+    background: linear-gradient(135deg, #2563eb, #60a5fa);
 }
 
 @keyframes toastSlide {

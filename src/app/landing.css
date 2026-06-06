@@ -4,11 +4,11 @@
     --bg-color: #ffffff;
     --text-color: #09090b;
     --text-muted: #52525b;
-    --primary-grad: linear-gradient(135deg, #7c3aed 0%, #0891b2 100%);
+    --primary-grad: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%);
     --panel-bg: rgba(244, 244, 245, 0.75);
     --panel-border: rgba(9, 9, 11, 0.08);
-    --glow-violet: rgba(124, 58, 237, 0.06);
-    --glow-cyan: rgba(8, 145, 178, 0.06);
+    --glow-violet: rgba(37, 99, 235, 0.06);
+    --glow-cyan: rgba(6, 182, 212, 0.06);
 }
 
 .landing-page-root * {
@@ -64,7 +64,7 @@
 .glow-1 {
     width: 600px;
     height: 600px;
-    background: radial-gradient(circle, #a78bfa 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, transparent 70%);
     top: -200px;
     right: -100px;
 }
@@ -72,7 +72,7 @@
 .glow-2 {
     width: 500px;
     height: 500px;
-    background: radial-gradient(circle, #06b6d4 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(6, 182, 212, 0.15) 0%, transparent 70%);
     bottom: -150px;
     left: -100px;
 }
@@ -182,10 +182,10 @@
     align-items: center;
     gap: 8px;
     padding: 6px 14px;
-    background: rgba(124, 58, 237, 0.08);
-    border: 1px solid rgba(124, 58, 237, 0.15);
+    background: rgba(37, 99, 235, 0.08);
+    border: 1px solid rgba(37, 99, 235, 0.15);
     border-radius: 9999px;
-    color: #7c3aed;
+    color: #2563eb;
     font-size: 13px;
     font-weight: 600;
     margin-bottom: 24px;
@@ -1275,12 +1275,12 @@
 
 .pricing-card:hover {
     transform: translateY(-4px);
-    border-color: rgba(167, 139, 250, 0.4);
+    border-color: rgba(96, 165, 250, 0.4);
 }
 
 .pricing-card.featured {
-    border-color: #a78bfa;
-    box-shadow: 0 0 30px rgba(167, 139, 250, 0.15);
+    border-color: #3b82f6;
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.15);
 }
 
 .pricing-badge {
@@ -1455,7 +1455,7 @@
 .param-name {
     font-family: monospace;
     font-weight: 600;
-    color: #a78bfa;
+    color: #2563eb;
 }
 
 .param-type {
@@ -1521,7 +1521,7 @@
     font-size: 13px;
     line-height: 1.6;
     overflow-x: auto;
-    color: #a78bfa;
+    color: #0284c7;
     max-height: 400px;
 }
 
@@ -1629,9 +1629,9 @@
 }
 
 .form-input:focus {
-    border-color: #a78bfa;
+    border-color: #3b82f6;
     background: rgba(255, 255, 255, 0.05);
-    box-shadow: 0 0 15px rgba(167, 139, 250, 0.1);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.1);
 }
 
 .modal-submit {
@@ -1790,7 +1790,7 @@
 }
 
 .google-account-item:hover {
-    border-color: #a78bfa;
+    border-color: #3b82f6;
     background: rgba(255, 255, 255, 0.05);
 }
 
@@ -1798,7 +1798,7 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: #a78bfa;
+    background: #3b82f6;
     color: #000;
     display: flex;
     justify-content: center;
