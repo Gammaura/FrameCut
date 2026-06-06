@@ -2205,11 +2205,8 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
 
                                     {bgRemovalMode === 'ai' ? (
                                         <>
-                                            <div className="control-group" style={{ marginBottom: '16px', background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.1)', borderRadius: '8px', padding: '12px' }}>
-                                                <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.5' }}>
-                                                    <strong>Automatic Saliency Detection:</strong> Our browser-side AI will analyze the photo, segment the main foreground subject (person/object), and remove the background seamlessly.
-                                                </p>
-                                            </div>
+
+
                                             <div className="control-group">
                                                 <label className="control-label">Edge Softness: <span className="control-value">{softness}</span></label>
                                                 <input type="range" className="slider" min="0" max="10" value={softness} onChange={(e) => setSoftness(parseInt(e.target.value))} />
