@@ -9,6 +9,8 @@ export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+    const [upgradeTargetPlan, setUpgradeTargetPlan] = useState('pro'); // 'pro' | 'team'
+    const [upgradeBillingCycle, setUpgradeBillingCycle] = useState('monthly'); // 'monthly' | 'yearly'
     const [authMode, setAuthMode] = useState('login'); // 'login' | 'signup'
     const [googleClientId, setGoogleClientId] = useState('');
 
@@ -231,6 +233,10 @@ export function AuthProvider({ children }) {
             setShowAuthModal,
             showUpgradeModal,
             setShowUpgradeModal,
+            upgradeTargetPlan,
+            setUpgradeTargetPlan,
+            upgradeBillingCycle,
+            setUpgradeBillingCycle,
             authMode,
             setAuthMode,
             googleClientId,

@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import '../landing.css';
 
 export default function Pricing() {
-    const { user, logout, setShowAuthModal, setShowUpgradeModal, setAuthMode } = useAuth();
+    const { user, logout, setShowAuthModal, setShowUpgradeModal, setUpgradeTargetPlan, setUpgradeBillingCycle, setAuthMode } = useAuth();
     const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' | 'yearly'
     const [activeFaq, setActiveFaq] = useState(null);
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
@@ -33,6 +33,8 @@ export default function Pricing() {
             return;
         }
         if (planName === 'Starter') return;
+        setUpgradeTargetPlan(planName.toLowerCase());
+        setUpgradeBillingCycle(billingCycle);
         setShowUpgradeModal(true);
     };
 

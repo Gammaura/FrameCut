@@ -10,6 +10,8 @@ export default function Modals() {
         setShowAuthModal,
         showUpgradeModal,
         setShowUpgradeModal,
+        upgradeTargetPlan,
+        upgradeBillingCycle,
         authMode,
         setAuthMode,
         googleClientId,
@@ -23,6 +25,7 @@ export default function Modals() {
 
     // Payment Form State
     const [selectedTier, setSelectedTier] = useState('pro'); // 'pro' | 'team'
+    const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' | 'yearly'
     const [cardNumber, setCardNumber] = useState('');
     const [expiry, setExpiry] = useState('');
     const [cvc, setCvc] = useState('');
@@ -31,13 +34,30 @@ export default function Modals() {
     const [paymentMethod, setPaymentMethod] = useState('card'); // 'card' | 'qris'
     const [qrisTimer, setQrisTimer] = useState(300); // 5 minutes (300 seconds)
 
-    // Reset payment states when modal opens
+    // Pricing data map
+    const prices = {
+        pro: { USD: { monthly: 9.99, yearly: 7.99 }, IDR: { monthly: 150000, yearly: 120000 } },
+        team: { USD: { monthly: 29.99, yearly: 23.99 }, IDR: { monthly: 450000, yearly: 360000 } }
+    };
+
+    const getCurrentPrice = () => {
+        return prices[selectedTier]?.[currency]?.[billingCycle] || 0;
+    };
+
+    const formatPrice = (amount) => {
+        if (currency === 'USD') return `$${amount}`;
+        return `Rp ${amount.toLocaleString('id-ID')}`;
+    };
+
+    // Reset payment states when modal opens and sync from context
     useEffect(() => {
         if (showUpgradeModal) {
             setPaymentStatus('idle');
             setCardNumber('');
             setExpiry('');
             setCvc('');
+            setSelectedTier(upgradeTargetPlan || 'pro');
+            setBillingCycle(upgradeBillingCycle || 'monthly');
             
             // Sync currency selection from localStorage if set
             const preferred = typeof window !== 'undefined' ? (localStorage.getItem('framecut_preferred_currency') || 'USD') : 'USD';
@@ -45,7 +65,7 @@ export default function Modals() {
             setPaymentMethod(preferred === 'IDR' ? 'qris' : 'card');
             setQrisTimer(300);
         }
-    }, [showUpgradeModal]);
+    }, [showUpgradeModal, upgradeTargetPlan, upgradeBillingCycle]);
 
     // QRIS Timer effect
     useEffect(() => {
@@ -241,73 +261,90 @@ export default function Modals() {
                                 </div>
 
                                 <form onSubmit={(e) => { e.preventDefault(); handlePaymentSubmit(); }}>
+                                    {/* Billing Cycle Toggle */}
+                                    <div style={{ display: 'flex', gap: '4px', padding: '3px', background: '#f4f4f5', borderRadius: '10px', marginBottom: '16px' }}>
+                                        <button 
+                                            type="button" 
+                                            onClick={() => setBillingCycle('monthly')}
+                                            style={{ flex: 1, padding: '8px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '700', fontSize: '12px', background: billingCycle === 'monthly' ? '#09090b' : 'transparent', color: billingCycle === 'monthly' ? '#fff' : '#71717a', transition: 'all 0.2s' }}
+                                        >
+                                            Monthly
+                                        </button>
+                                        <button 
+                                            type="button" 
+                                            onClick={() => setBillingCycle('yearly')}
+                                            style={{ flex: 1, padding: '8px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '700', fontSize: '12px', background: billingCycle === 'yearly' ? '#09090b' : 'transparent', color: billingCycle === 'yearly' ? '#fff' : '#71717a', transition: 'all 0.2s' }}
+                                        >
+                                            Yearly (Save 20%)
+                                        </button>
+                                    </div>
+
+                                    {/* Plan Cards */}
+                                    <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                                        <div 
+                                            onClick={() => setSelectedTier('pro')}
+                                            style={{ flex: 1, padding: '14px 16px', border: selectedTier === 'pro' ? '2px solid #2563eb' : '1px solid #e4e4e7', borderRadius: '12px', cursor: 'pointer', background: selectedTier === 'pro' ? 'rgba(37, 99, 235, 0.04)' : '#fff', transition: 'all 0.2s' }}
+                                        >
+                                            <div style={{ fontWeight: '700', fontSize: '13px', marginBottom: '4px' }}>Pro</div>
+                                            <div style={{ fontWeight: '800', color: '#2563eb', fontSize: '15px' }}>
+                                                {formatPrice(prices.pro[currency][billingCycle])}
+                                            </div>
+                                            <div style={{ fontSize: '11px', color: '#71717a', marginTop: '2px' }}>/ {billingCycle === 'monthly' ? 'month' : 'mo, billed yearly'}</div>
+                                        </div>
+                                        <div 
+                                            onClick={() => setSelectedTier('team')}
+                                            style={{ flex: 1, padding: '14px 16px', border: selectedTier === 'team' ? '2px solid #2563eb' : '1px solid #e4e4e7', borderRadius: '12px', cursor: 'pointer', background: selectedTier === 'team' ? 'rgba(37, 99, 235, 0.04)' : '#fff', transition: 'all 0.2s' }}
+                                        >
+                                            <div style={{ fontWeight: '700', fontSize: '13px', marginBottom: '4px' }}>Team</div>
+                                            <div style={{ fontWeight: '800', color: '#2563eb', fontSize: '15px' }}>
+                                                {formatPrice(prices.team[currency][billingCycle])}
+                                            </div>
+                                            <div style={{ fontSize: '11px', color: '#71717a', marginTop: '2px' }}>/ {billingCycle === 'monthly' ? 'month' : 'mo, billed yearly'}</div>
+                                        </div>
+                                    </div>
+
+                                    {/* Currency + Payment Method Row */}
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
                                         <div>
-                                            <label className="form-label">Select Plan</label>
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                                <div 
-                                                    className={`upgrade-plan-card ${selectedTier === 'pro' ? 'active' : ''}`}
-                                                    onClick={() => setSelectedTier('pro')}
-                                                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', border: selectedTier === 'pro' ? '2px solid var(--accent-purple)' : '1px solid var(--border-subtle)', borderRadius: '12px', cursor: 'pointer', background: selectedTier === 'pro' ? 'rgba(37, 99, 235, 0.03)' : '#fff' }}
-                                                >
-                                                    <span style={{ fontWeight: '700', fontSize: '13px' }}>Pro Tier</span>
-                                                    <span style={{ fontWeight: '800', color: 'var(--accent-purple)', fontSize: '13px' }}>
-                                                        {currency === 'USD' ? '$9.99' : 'Rp 150.000'}
-                                                    </span>
-                                                </div>
-                                                <div 
-                                                    className={`upgrade-plan-card ${selectedTier === 'team' ? 'active' : ''}`}
-                                                    onClick={() => setSelectedTier('team')}
-                                                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', border: selectedTier === 'team' ? '2px solid var(--accent-purple)' : '1px solid var(--border-subtle)', borderRadius: '12px', cursor: 'pointer', background: selectedTier === 'team' ? 'rgba(37, 99, 235, 0.03)' : '#fff' }}
-                                                >
-                                                    <span style={{ fontWeight: '700', fontSize: '13px' }}>Team Tier</span>
-                                                    <span style={{ fontWeight: '800', color: 'var(--accent-purple)', fontSize: '13px' }}>
-                                                        {currency === 'USD' ? '$29.99' : 'Rp 450.000'}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div>
                                             <label className="form-label">Currency</label>
-                                            <div style={{ display: 'flex', gap: '6px', height: '42px' }}>
+                                            <div style={{ display: 'flex', gap: '4px' }}>
                                                 <button 
                                                     type="button" 
-                                                    style={{ flex: 1, border: currency === 'USD' ? '1px solid #09090b' : '1px solid var(--border-subtle)', background: currency === 'USD' ? '#09090b' : '#fff', color: currency === 'USD' ? '#fff' : 'var(--text-secondary)', borderRadius: '8px', cursor: 'pointer', fontWeight: '700', fontSize: '12px' }}
+                                                    style={{ flex: 1, padding: '8px', border: currency === 'USD' ? '1px solid #09090b' : '1px solid #e4e4e7', background: currency === 'USD' ? '#09090b' : '#fff', color: currency === 'USD' ? '#fff' : '#71717a', borderRadius: '8px', cursor: 'pointer', fontWeight: '700', fontSize: '12px' }}
                                                     onClick={() => { setCurrency('USD'); localStorage.setItem('framecut_preferred_currency', 'USD'); }}
                                                 >
                                                     USD ($)
                                                 </button>
                                                 <button 
                                                     type="button" 
-                                                    style={{ flex: 1, border: currency === 'IDR' ? '1px solid #09090b' : '1px solid var(--border-subtle)', background: currency === 'IDR' ? '#09090b' : '#fff', color: currency === 'IDR' ? '#fff' : 'var(--text-secondary)', borderRadius: '8px', cursor: 'pointer', fontWeight: '700', fontSize: '12px' }}
+                                                    style={{ flex: 1, padding: '8px', border: currency === 'IDR' ? '1px solid #09090b' : '1px solid #e4e4e7', background: currency === 'IDR' ? '#09090b' : '#fff', color: currency === 'IDR' ? '#fff' : '#71717a', borderRadius: '8px', cursor: 'pointer', fontWeight: '700', fontSize: '12px' }}
                                                     onClick={() => { setCurrency('IDR'); localStorage.setItem('framecut_preferred_currency', 'IDR'); setPaymentMethod('qris'); }}
                                                 >
                                                     IDR (Rp)
                                                 </button>
                                             </div>
                                         </div>
-                                    </div>
-
-                                    <div style={{ marginBottom: '16px' }}>
-                                        <label className="form-label">Payment Method</label>
-                                        <div style={{ display: 'flex', gap: '6px' }}>
-                                            <button 
-                                                type="button" 
-                                                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', border: paymentMethod === 'card' ? '1px solid #09090b' : '1px solid var(--border-subtle)', background: paymentMethod === 'card' ? '#09090b' : '#fff', color: paymentMethod === 'card' ? '#fff' : 'var(--text-secondary)', borderRadius: '8px', cursor: 'pointer', fontWeight: '700', fontSize: '12px' }}
-                                                onClick={() => setPaymentMethod('card')}
-                                            >
-                                                💳 Credit Card
-                                            </button>
-                                            <button 
-                                                type="button" 
-                                                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', border: paymentMethod === 'qris' ? '1px solid #09090b' : '1px solid var(--border-subtle)', background: paymentMethod === 'qris' ? '#09090b' : '#fff', color: paymentMethod === 'qris' ? '#fff' : 'var(--text-secondary)', borderRadius: '8px', cursor: 'pointer', fontWeight: '700', fontSize: '12px' }}
-                                                onClick={() => setPaymentMethod('qris')}
-                                            >
-                                                📱 QRIS / E-Wallet
-                                            </button>
+                                        <div>
+                                            <label className="form-label">Payment Method</label>
+                                            <div style={{ display: 'flex', gap: '4px' }}>
+                                                <button 
+                                                    type="button" 
+                                                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', padding: '8px', border: paymentMethod === 'card' ? '1px solid #09090b' : '1px solid #e4e4e7', background: paymentMethod === 'card' ? '#09090b' : '#fff', color: paymentMethod === 'card' ? '#fff' : '#71717a', borderRadius: '8px', cursor: 'pointer', fontWeight: '700', fontSize: '11px' }}
+                                                    onClick={() => setPaymentMethod('card')}
+                                                >
+                                                    💳 Card
+                                                </button>
+                                                <button 
+                                                    type="button" 
+                                                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', padding: '8px', border: paymentMethod === 'qris' ? '1px solid #09090b' : '1px solid #e4e4e7', background: paymentMethod === 'qris' ? '#09090b' : '#fff', color: paymentMethod === 'qris' ? '#fff' : '#71717a', borderRadius: '8px', cursor: 'pointer', fontWeight: '700', fontSize: '11px' }}
+                                                    onClick={() => setPaymentMethod('qris')}
+                                                >
+                                                    📱 QRIS
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
+
 
                                     {paymentMethod === 'card' ? (
                                         <>
@@ -359,7 +396,7 @@ export default function Modals() {
                                             >
                                                 {paymentStatus === 'processing' 
                                                     ? 'Processing Payment...' 
-                                                    : `Pay ${currency === 'USD' ? '$' : 'Rp '}${selectedTier === 'pro' ? (currency === 'USD' ? '9.99' : '150.000') : (currency === 'USD' ? '29.99' : '450.000')}`}
+                                                    : `Pay ${formatPrice(getCurrentPrice())}${billingCycle === 'yearly' ? '/mo' : ''}`}
                                             </button>
                                         </>
                                     ) : (
@@ -392,7 +429,7 @@ export default function Modals() {
 
                                             <div style={{ textAlign: 'center', marginBottom: '12px' }}>
                                                 <div style={{ fontWeight: '800', fontSize: '16px', color: '#09090b' }}>
-                                                    {currency === 'USD' ? `Rp ${(selectedTier === 'pro' ? 150000 : 450000).toLocaleString('id-ID')}` : `Rp ${(selectedTier === 'pro' ? 150000 : 450000).toLocaleString('id-ID')}`}
+                                                    {formatPrice(getCurrentPrice())}{billingCycle === 'yearly' ? ' /mo' : ''}
                                                 </div>
                                                 <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', lineHeight: '1.4' }}>
                                                     Scan with GoPay, OVO, Dana, LinkAja, ShopeePay, or Mobile Banking.

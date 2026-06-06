@@ -1113,7 +1113,6 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
             setProcessing({ visible: true, progress: 20, title: 'AI processing image background...' });
             
             const processedBlob = await removeBackground(img.src, {
-                model: 'small',
                 debug: false,
                 progress: (key, current, total) => {
                     const percent = Math.round((current / total) * 100);
@@ -2834,7 +2833,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                                                 cursor: (activeTool === 'bg-remover' && bgRemoverManualEraseMode) || activeTool === 'magic-eraser' || activeTool === 'brush-draw' || activeTool === 'generative-fill' ? 'crosshair' : isDragging ? 'grabbing' : 'grab',
                                                 position: 'relative',
                                                 zIndex: 1,
-                                                borderRadius: '24px',
+                                                borderRadius: '4px',
                                                 boxShadow: '0 20px 48px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.02)',
                                                 border: '1px solid rgba(0, 0, 0, 0.06)',
                                                 overflow: 'hidden',
