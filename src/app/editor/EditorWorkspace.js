@@ -617,9 +617,14 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                 }
                 fitCanvasToView();
                 
-                // Don't auto-run AI on upload — let user click the button
-                // Just auto-detect background color for chroma key mode
-                if (activeTool !== 'bg-remover' || bgRemovalMode !== 'ai') {
+                // Auto-run AI background removal on upload
+                if (activeTool === 'bg-remover' || activeTool === 'change-bg') {
+                    if (bgRemovalMode === 'ai') {
+                        applyAiAutoCutout(img, imgData);
+                    } else {
+                        autoRemoveBackground(img, imgData);
+                    }
+                } else {
                     autoDetectColor(imgData);
                 }
             }, 100);
@@ -2340,15 +2345,6 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                                             </div>
                                         )}
                                     </div>
-
-                                    <button 
-                                        className="editor-btn editor-btn-primary" 
-                                        onClick={bgRemovalMode === 'ai' ? applyAiAutoCutout : applyTransparency} 
-                                        disabled={!imageLoaded} 
-                                        style={{ width: '100%', marginTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-                                    >
-                                        {bgRemovalMode === 'ai' ? '✨ Remove Background' : 'Apply Cutout'}
-                                    </button>
                                 </>
                             )}
 
