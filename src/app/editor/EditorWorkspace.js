@@ -2709,16 +2709,106 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                             <div className="divider" style={{ margin: '16px 0', borderTop: '1px solid var(--panel-border)' }}></div>
 
                             {/* Common actions and exporters */}
-                            <button className="editor-btn editor-btn-download" onClick={downloadPNG} disabled={!imageLoaded && activeTool !== 'video-remover'} style={{ width: '100%' }}>
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
+                            <button 
+                                className="editor-btn editor-btn-download" 
+                                onClick={downloadPNG} 
+                                disabled={!imageLoaded && activeTool !== 'video-remover'} 
+                                style={{ 
+                                    width: '100%', 
+                                    padding: '12px 18px', 
+                                    borderRadius: '12px', 
+                                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', 
+                                    border: 'none',
+                                    color: '#ffffff',
+                                    fontWeight: '700',
+                                    fontSize: '14px',
+                                    boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '8px'
+                                }}
+                            >
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
                                 </svg>
                                 Download Output
                             </button>
 
-                            <button className="editor-btn editor-btn-outline editor-btn-sm" onClick={resetEditor} disabled={!imageLoaded} style={{ marginTop: '8px', width: '100%' }}>Reset Adjustments</button>
-                            <button className="editor-btn editor-btn-outline editor-btn-sm" onClick={clearWorkspaceImage} disabled={!imageLoaded} style={{ marginTop: '8px', width: '100%', color: '#f87171', borderColor: 'rgba(239, 68, 68, 0.2)' }}>Clear Active Image</button>
-                            <button className="editor-btn editor-btn-outline editor-btn-sm" onClick={triggerNewUpload} style={{ marginTop: '8px', width: '100%' }}>Upload New Image</button>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '12px' }}>
+                                <button 
+                                    className="editor-btn" 
+                                    onClick={resetEditor} 
+                                    disabled={!imageLoaded} 
+                                    style={{ 
+                                        width: '100%', 
+                                        padding: '10px 14px',
+                                        borderRadius: '10px',
+                                        border: '1px solid #e2e8f0',
+                                        background: '#ffffff',
+                                        color: '#475569',
+                                        fontSize: '12px',
+                                        fontWeight: '600',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '6px'
+                                    }}
+                                >
+                                    🔄 Reset
+                                </button>
+                                <button 
+                                    className="editor-btn" 
+                                    onClick={clearWorkspaceImage} 
+                                    disabled={!imageLoaded} 
+                                    style={{ 
+                                        width: '100%', 
+                                        padding: '10px 14px',
+                                        borderRadius: '10px',
+                                        border: '1px solid #fee2e2',
+                                        background: '#fef2f2',
+                                        color: '#ef4444',
+                                        fontSize: '12px',
+                                        fontWeight: '600',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '6px'
+                                    }}
+                                >
+                                    🗑️ Clear
+                                </button>
+                            </div>
+
+                            <button 
+                                className="editor-btn" 
+                                onClick={triggerNewUpload} 
+                                style={{ 
+                                    marginTop: '8px', 
+                                    width: '100%',
+                                    padding: '10px 14px',
+                                    borderRadius: '10px',
+                                    border: '1px solid #dbeafe',
+                                    background: '#eff6ff',
+                                    color: '#2563eb',
+                                    fontSize: '13px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '6px'
+                                }}
+                            >
+                                📤 Upload New Image
+                            </button>
                         </div>
 
                         {/* CENTER WORKSPACE VIEWPORT */}
@@ -2834,13 +2924,64 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                                 </div>
                             ) : (
                                 <>
-                                    <div className="canvas-tabs" style={{ display: 'flex', gap: '8px', padding: '12px 16px', background: 'rgba(9, 9, 11, 0.4)', borderBottom: '1px solid var(--panel-border)' }}>
-                                        <button className={`tab ${currentView === 'original' ? 'active' : ''}`} onClick={() => setCurrentView('original')} style={{ border: 'none', background: 'none', cursor: 'pointer', color: currentView === 'original' ? '#fff' : 'var(--text-muted)', fontWeight: '700', padding: '6px 12px', fontSize: '13px' }}>
-                                            Original View
-                                        </button>
-                                        <button className={`tab ${currentView === 'result' ? 'active' : ''}`} onClick={() => setCurrentView('result')} style={{ border: 'none', background: 'none', cursor: 'pointer', color: currentView === 'result' ? '#fff' : 'var(--text-muted)', fontWeight: '700', padding: '6px 12px', fontSize: '13px' }}>
-                                            Result View
-                                        </button>
+                                    <div className="canvas-tabs" style={{ 
+                                        display: 'flex', 
+                                        justifyContent: 'center',
+                                        padding: '12px 16px', 
+                                        background: '#ffffff', 
+                                        borderBottom: '1px solid var(--border-subtle)',
+                                        boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.03)'
+                                    }}>
+                                        <div style={{
+                                            display: 'inline-flex',
+                                            background: '#f1f5f9',
+                                            padding: '4px',
+                                            borderRadius: '10px',
+                                            border: '1px solid #e2e8f0'
+                                        }}>
+                                            <button 
+                                                className={`tab-btn ${currentView === 'original' ? 'active' : ''}`} 
+                                                onClick={() => setCurrentView('original')} 
+                                                style={{ 
+                                                    border: 'none', 
+                                                    background: currentView === 'original' ? '#ffffff' : 'transparent', 
+                                                    cursor: 'pointer', 
+                                                    color: currentView === 'original' ? '#0f172a' : '#64748b', 
+                                                    fontWeight: '600', 
+                                                    padding: '6px 16px', 
+                                                    fontSize: '13px',
+                                                    borderRadius: '8px',
+                                                    boxShadow: currentView === 'original' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                                                    transition: 'all 0.2s ease',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '6px'
+                                                }}
+                                            >
+                                                🖼️ Original View
+                                            </button>
+                                            <button 
+                                                className={`tab-btn ${currentView === 'result' ? 'active' : ''}`} 
+                                                onClick={() => setCurrentView('result')} 
+                                                style={{ 
+                                                    border: 'none', 
+                                                    background: currentView === 'result' ? '#ffffff' : 'transparent', 
+                                                    cursor: 'pointer', 
+                                                    color: currentView === 'result' ? '#0f172a' : '#64748b', 
+                                                    fontWeight: '600', 
+                                                    padding: '6px 16px', 
+                                                    fontSize: '13px',
+                                                    borderRadius: '8px',
+                                                    boxShadow: currentView === 'result' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                                                    transition: 'all 0.2s ease',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '6px'
+                                                }}
+                                            >
+                                                ✨ Result View
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <div 
