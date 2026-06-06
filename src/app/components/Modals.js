@@ -164,7 +164,7 @@ export default function Modals() {
                                     <p className="modal-subtitle">
                                         {authMode === 'login' 
                                             ? 'Log in to access your dashboard and templates.' 
-                                            : 'Register to claim 5 free high-speed exports daily.'}
+                                            : 'Register to claim 20 free tokens instantly.'}
                                     </p>
                                 </div>
 
@@ -263,7 +263,7 @@ export default function Modals() {
                             <>
                                 <div className="modal-header">
                                     <h3 className="modal-title">Upgrade Plan</h3>
-                                    <p className="modal-subtitle">Claim unlimited exports and low-latency API access.</p>
+                                    <p className="modal-subtitle">Get high-volume token credits and unlock developer API access.</p>
                                 </div>
 
                                 <form onSubmit={handlePaymentSubmit}>

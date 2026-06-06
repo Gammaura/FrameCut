@@ -7,7 +7,6 @@ const AuthContext = createContext({});
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
-    const [usageCount, setUsageCount] = useState(0);
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const [authMode, setAuthMode] = useState('login'); // 'login' | 'signup'
@@ -17,23 +16,15 @@ export function AuthProvider({ children }) {
     useEffect(() => {
         const storedUser = localStorage.getItem('framecut_user');
         if (storedUser) {
-            setUser(JSON.parse(storedUser));
+            const parsed = JSON.parse(storedUser);
+            if (typeof parsed.tokens === 'undefined') {
+                parsed.tokens = parsed.tier === 'free' ? 20 : parsed.tier === 'pro' ? 200 : 1000;
+            }
+            setUser(parsed);
         }
 
         const storedClientId = localStorage.getItem('framecut_google_client_id') || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '649938599189-qh7r2cf1l2ra9lh40mplfceb1k4mh5n7.apps.googleusercontent.com';
         setGoogleClientId(storedClientId);
-
-        const storedUsage = localStorage.getItem('framecut_usage');
-        if (storedUsage) {
-            const parsed = JSON.parse(storedUsage);
-            const today = new Date().toDateString();
-            if (parsed.date === today) {
-                setUsageCount(parsed.count);
-            } else {
-                setUsageCount(0);
-                localStorage.setItem('framecut_usage', JSON.stringify({ date: today, count: 0 }));
-            }
-        }
 
         // Process Google OAuth redirect token
         const hash = window.location.hash;
@@ -54,6 +45,7 @@ export function AuthProvider({ children }) {
                                 name: data.name || data.email.split('@')[0],
                                 picture: data.picture,
                                 tier: 'free',
+                                tokens: 20,
                                 apiKey: null
                             };
                             
@@ -61,6 +53,7 @@ export function AuthProvider({ children }) {
                             const existing = registeredUsers.find(u => u.email === data.email);
                             if (existing) {
                                 googleUser.tier = existing.tier;
+                                googleUser.tokens = typeof existing.tokens === 'number' ? existing.tokens : (existing.tier === 'free' ? 20 : existing.tier === 'pro' ? 200 : 1000);
                                 googleUser.apiKey = existing.apiKey;
                             } else {
                                 registeredUsers.push(googleUser);
@@ -92,6 +85,7 @@ export function AuthProvider({ children }) {
         const mockUser = {
             email,
             tier: 'free',
+            tokens: 20,
             apiKey: null
         };
         
@@ -100,6 +94,7 @@ export function AuthProvider({ children }) {
         
         if (existing) {
             mockUser.tier = existing.tier;
+            mockUser.tokens = typeof existing.tokens === 'number' ? existing.tokens : (existing.tier === 'free' ? 20 : existing.tier === 'pro' ? 200 : 1000);
             mockUser.apiKey = existing.apiKey;
         } else {
             registeredUsers.push(mockUser);
@@ -118,6 +113,7 @@ export function AuthProvider({ children }) {
         const mockUser = {
             email,
             tier: 'free',
+            tokens: 20,
             apiKey: null
         };
         const registeredUsers = JSON.parse(localStorage.getItem('framecut_registered') || '[]');
@@ -170,9 +166,14 @@ export function AuthProvider({ children }) {
             return;
         }
 
+        let newTokens = 20;
+        if (tier === 'pro') newTokens = 200;
+        if (tier === 'team') newTokens = 1000;
+
         const updatedUser = {
             ...user,
             tier,
+            tokens: newTokens,
             apiKey: tier === 'team' ? `fc_live_${Math.random().toString(36).substring(2, 15)}` : user.apiKey
         };
 
@@ -197,29 +198,35 @@ export function AuthProvider({ children }) {
         localStorage.setItem('framecut_registered', JSON.stringify(updatedRegistered));
     };
 
-    const incrementUsage = () => {
-        if (user && (user.tier === 'pro' || user.tier === 'team')) {
-            return true;
+    const deductTokens = (cost) => {
+        if (!user) {
+            setAuthMode('login');
+            setShowAuthModal(true);
+            return false;
         }
 
-        if (usageCount >= 5) {
+        const currentTokens = typeof user.tokens === 'number' ? user.tokens : 0;
+        if (currentTokens < cost) {
             setShowUpgradeModal(true);
             return false;
         }
 
-        const newCount = usageCount + 1;
-        setUsageCount(newCount);
-        localStorage.setItem('framecut_usage', JSON.stringify({
-            date: new Date().toDateString(),
-            count: newCount
-        }));
+        const updatedUser = {
+            ...user,
+            tokens: currentTokens - cost
+        };
+        setUser(updatedUser);
+        localStorage.setItem('framecut_user', JSON.stringify(updatedUser));
+
+        const registeredUsers = JSON.parse(localStorage.getItem('framecut_registered') || '[]');
+        const updatedRegistered = registeredUsers.map(u => u.email === user.email ? updatedUser : u);
+        localStorage.setItem('framecut_registered', JSON.stringify(updatedRegistered));
         return true;
     };
 
     return (
         <AuthContext.Provider value={{
             user,
-            usageCount,
             showAuthModal,
             setShowAuthModal,
             showUpgradeModal,
@@ -234,7 +241,7 @@ export function AuthProvider({ children }) {
             logout,
             upgradePlan,
             generateNewApiKey,
-            incrementUsage
+            deductTokens
         }}>
             {children}
             <Modals />

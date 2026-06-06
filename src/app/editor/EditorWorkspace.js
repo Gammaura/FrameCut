@@ -98,7 +98,7 @@ function evaluateRectangularity(data, w, h, color, step) {
 
 // ===== EDITOR COMPONENT =====
 export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
-    const { user, logout, setShowAuthModal, setShowUpgradeModal, setAuthMode, usageCount, incrementUsage } = useAuth();
+    const { user, logout, setShowAuthModal, setShowUpgradeModal, setAuthMode, deductTokens } = useAuth();
     const router = useRouter();
     
     // Core states
@@ -204,6 +204,8 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
     const [adTextTitle, setAdTextTitle] = useState('Flash Sale');
     const [adTextDiscount, setAdTextDiscount] = useState('50% OFF');
     const [adTextCTA, setAdTextCTA] = useState('Shop Now');
+    const [adBannerGenerated, setAdBannerGenerated] = useState(false);
+    const [bgChangeApplied, setBgChangeApplied] = useState(false);
 
     // 11. Bulk Editor
     const [bulkQueue, setBulkQueue] = useState([]); // { file, status, name }[]
@@ -316,7 +318,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
         // 3. Draw Background under transparent regions
         ctx.save();
         ctx.globalCompositeOperation = 'destination-over';
-        if (activeTool === 'change-bg' || activeTool === 'ai-ads') {
+        if (activeTool === 'change-bg' || bgChangeApplied || (activeTool === 'ai-ads' && adBannerGenerated)) {
             if (selectedBgType === 'color') {
                 ctx.fillStyle = selectedBgColor;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -383,7 +385,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
         }
 
         // 6. Draw AI Ads Template text and badges
-        if (activeTool === 'ai-ads') {
+        if (activeTool === 'ai-ads' && adBannerGenerated) {
             ctx.save();
             ctx.textAlign = 'center';
             
@@ -719,8 +721,14 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
     };
 
     // Low-level high-performance Background Removal Flood Fill mask logic
-    const applyTransparency = (overrideColor = null) => {
+    const applyTransparency = (overrideColor = null, isUserTriggered = true) => {
         if (!originalImageData) return;
+        if (isUserTriggered) {
+            if (!deductTokens(1)) {
+                showToast('Insufficient tokens to run Chroma Key (costs 1 token)', 'error');
+                return;
+            }
+        }
         setProcessing({ visible: true, progress: 20, title: 'Removing background...' });
 
         setTimeout(() => {
@@ -972,7 +980,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                     const detectedBg = detectBackgroundColorFromCorners(imgData);
                     setTargetColor(detectedBg);
                     showToast('Logo/graphics detected. Auto-removing background color...', 'info');
-                    applyTransparency(detectedBg);
+                    applyTransparency(detectedBg, false);
                     return;
                 }
                 
@@ -1081,7 +1089,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
             console.error(err);
             setProcessing({ visible: false, progress: 0 });
             showToast('AI cutout failed. Using color key fallback.', 'warning');
-            applyTransparency();
+            applyTransparency(null, false);
         }
     };
 
@@ -1090,6 +1098,12 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
         const img = passedImg || originalImage;
         const imgData = passedImgData || originalImageData;
         if (!img || !imgData) return;
+
+        if (!deductTokens(2)) {
+            showToast('Insufficient tokens to run AI Auto Cutout (costs 2 tokens)', 'error');
+            return;
+        }
+
         setProcessing({ visible: true, progress: 10, title: 'Initializing Professional AI...' });
         
         try {
@@ -1192,6 +1206,11 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
         const sourceData = resultImageData || originalImageData;
         if (!sourceData) return;
         
+        if (!deductTokens(3)) {
+            showToast('Insufficient tokens to run AI Upscale (costs 3 tokens)', 'error');
+            return;
+        }
+
         setProcessing({ visible: true, progress: 20, title: 'Interpolating sub-pixels...' });
         
         setTimeout(() => {
@@ -1225,7 +1244,30 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
         }, 1200);
     };
 
+    const applyBgStyleAction = () => {
+        if (!deductTokens(1)) {
+            showToast('Insufficient tokens to apply custom background (costs 1 token)', 'error');
+            return;
+        }
+        setBgChangeApplied(true);
+        showToast('Background layout applied!', 'success');
+    };
+
+    const applyAiAdOverlay = () => {
+        if (!deductTokens(3)) {
+            showToast('Insufficient tokens to generate AI Ad Banner (costs 3 tokens)', 'error');
+            return;
+        }
+        setAdBannerGenerated(true);
+        showToast('AI Ad Banner template generated!', 'success');
+    };
+
     const handleVideoSampleSelect = (val) => {
+        if (!val) return;
+        if (!deductTokens(5)) {
+            showToast('Insufficient tokens to process Video BG Remover (costs 5 tokens)', 'error');
+            return;
+        }
         setVideoSample(val);
         if (videoLoopId.current) cancelAnimationFrame(videoLoopId.current);
 
@@ -1287,6 +1329,12 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
     // 5. Magic Eraser (Inpainting) Action
     const applyMagicEraser = () => {
         if (currentEraserPath.length === 0) return;
+
+        if (!deductTokens(3)) {
+            showToast('Insufficient tokens to run Magic Eraser (costs 3 tokens)', 'error');
+            return;
+        }
+
         setProcessing({ visible: true, progress: 40, title: 'Inpainting masked region...' });
 
         setTimeout(() => {
@@ -1369,6 +1417,12 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
     // 6. AI Image Generator Action
     const runAiImageGenerator = () => {
         if (!aiImagePrompt) return;
+
+        if (!deductTokens(4)) {
+            showToast('Insufficient tokens to run AI Image Generator (costs 4 tokens)', 'error');
+            return;
+        }
+
         setProcessing({ visible: true, progress: 20, title: 'Calling AI pipelines...' });
         
         setTimeout(() => {
@@ -1383,10 +1437,22 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
             
             if (category.includes('watch') || category.includes('clock')) {
                 src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop';
-            } else if (category.includes('office') || category.includes('chair') || category.includes('desk')) {
+            } else if (category.includes('office') || category.includes('chair') || category.includes('desk') || category.includes('headphone')) {
                 src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop';
-            } else if (category.includes('bag') || category.includes('backpack')) {
+            } else if (category.includes('bag') || category.includes('backpack') || category.includes('handbag')) {
                 src = 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&auto=format&fit=crop';
+            } else if (category.includes('phone') || category.includes('mobile') || category.includes('iphone')) {
+                src = 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop';
+            } else if (category.includes('perfume') || category.includes('scent') || category.includes('cologne')) {
+                src = 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=600&auto=format&fit=crop';
+            } else if (category.includes('car') || category.includes('vehicle') || category.includes('sportscar')) {
+                src = 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&auto=format&fit=crop';
+            } else if (category.includes('glasses') || category.includes('sunglasses')) {
+                src = 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600&auto=format&fit=crop';
+            } else if (category.includes('cosmetics') || category.includes('cream') || category.includes('skincare')) {
+                src = 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&auto=format&fit=crop';
+            } else if (category.includes('coffee') || category.includes('mug') || category.includes('cup') || category.includes('drink')) {
+                src = 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=600&auto=format&fit=crop';
             }
             
             const img = new Image();
@@ -1413,6 +1479,12 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
     // 7. AI Video Generator Action
     const runAiVideoGenerator = () => {
         if (!aiVideoPrompt) return;
+
+        if (!deductTokens(10)) {
+            showToast('Insufficient tokens to run AI Video Generator (costs 10 tokens)', 'error');
+            return;
+        }
+
         setProcessing({ visible: true, progress: 20, title: 'Rendering keyframes...' });
         
         setTimeout(() => {
@@ -1425,6 +1497,12 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
     // 8. Generative Fill Action
     const applyGenerativeFill = () => {
         if (!genFillArea || !genFillPrompt) return;
+
+        if (!deductTokens(4)) {
+            showToast('Insufficient tokens to run Generative Fill (costs 4 tokens)', 'error');
+            return;
+        }
+
         setProcessing({ visible: true, progress: 45, title: 'Synthesizing layout objects...' });
         
         setTimeout(() => {
@@ -1465,6 +1543,12 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
     const applyUncrop = () => {
         const sourceData = resultImageData || originalImageData;
         if (!sourceData) return;
+
+        if (!deductTokens(3)) {
+            showToast('Insufficient tokens to run Uncrop (costs 3 tokens)', 'error');
+            return;
+        }
+
         setProcessing({ visible: true, progress: 40, title: 'Reconstructing canvas borders...' });
 
         setTimeout(() => {
@@ -1508,6 +1592,13 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
 
     const processBulkQueue = () => {
         if (bulkQueue.length === 0) return;
+
+        const cost = bulkQueue.length;
+        if (!deductTokens(cost)) {
+            showToast(`Insufficient tokens to process batch queue (costs ${cost} tokens)`, 'error');
+            return;
+        }
+
         let index = 0;
         
         const processNext = () => {
@@ -1599,9 +1690,6 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
     const downloadPNG = () => {
         const baseData = resultImageData || originalImageData;
         if (!baseData) return;
-
-        const allowed = incrementUsage();
-        if (!allowed) return;
 
         // Draw final composite with overlays
         const tempCanvas = document.createElement('canvas');
@@ -1831,6 +1919,44 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
         );
     };
 
+    if (!user) {
+        return (
+            <div className="landing-page-root" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', justifyContent: 'center', alignItems: 'center', padding: '24px', background: '#0A0B0C', color: '#fff', position: 'relative', overflow: 'hidden' }}>
+                <div className="landing-bg">
+                    <div className="glow glow-1" style={{ background: '#FF5500', opacity: 0.15 }}></div>
+                    <div className="glow glow-2" style={{ background: '#121315', opacity: 0.1 }}></div>
+                </div>
+                
+                <div className="crop-box" style={{ maxWidth: '480px', width: '100%', padding: '40px 32px', textAlign: 'center', background: '#121315', border: '1px solid #2E3035', position: 'relative', borderRadius: '0' }}>
+                    <div className="crop-corners-inner"></div>
+                    
+                    <span className="logo-brand" style={{ marginBottom: '24px', display: 'inline-flex', gap: '4px', fontSize: '28px', fontFamily: 'var(--font-syne), sans-serif' }}>
+                        <strong style={{ fontWeight: '900', color: '#fff', letterSpacing: '-0.5px' }}>FRAME</strong>
+                        <span style={{ fontWeight: '300', color: '#FF5500', letterSpacing: '-0.5px' }}>CUT</span>
+                    </span>
+                    
+                    <h2 style={{ fontSize: '20px', marginBottom: '16px', textTransform: 'uppercase', fontFamily: 'var(--font-syne), sans-serif', color: '#fff', letterSpacing: '0.5px' }}>Authentication Required</h2>
+                    <p style={{ fontSize: '14px', marginBottom: '32px', lineHeight: '1.6', fontFamily: 'var(--font-outfit), sans-serif', color: '#9595b0' }}>
+                        To access FrameCut Studio, please sign in with your account first. 
+                        New accounts receive <strong style={{ color: '#FF5500' }}>20 free tokens</strong> immediately.
+                    </p>
+                    
+                    <button 
+                        onClick={() => { setAuthMode('login'); setShowAuthModal(true); }}
+                        className="editor-btn editor-btn-primary"
+                        style={{ width: '100%', background: '#FF5500', color: '#000', border: 'none', padding: '12px 24px', fontWeight: 'bold', fontFamily: 'var(--font-bricolage), sans-serif', cursor: 'pointer', borderRadius: '0', textTransform: 'uppercase' }}
+                    >
+                        Sign In / Sign Up
+                    </button>
+                    
+                    <a href="/" style={{ display: 'block', marginTop: '20px', color: '#9595b0', fontSize: '13px', textDecoration: 'none', fontFamily: 'var(--font-outfit), sans-serif', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#fff'} onMouseLeave={(e) => e.target.style.color = '#9595b0'}>
+                        ← Back to Home
+                    </a>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="editor-page-root">
             <div className="app-bg">
@@ -1846,9 +1972,9 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                         <span>← Dashboard</span>
                     </Link>
                     <Link href="/editor" className="logo" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-                        <span style={{ textTransform: 'uppercase', letterSpacing: '0.04em', display: 'inline-flex', alignItems: 'center', fontSize: '20px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                        <span style={{ textTransform: 'uppercase', letterSpacing: '0.04em', display: 'inline-flex', alignItems: 'center', fontSize: '20px', fontFamily: 'var(--font-syne), sans-serif' }}>
                             <strong style={{ fontWeight: '900', color: '#f1f5f9' }}>FRAME</strong>
-                            <span style={{ fontWeight: '300', color: '#64748b' }}>CUT</span>
+                            <span style={{ fontWeight: '300', color: '#ff5500' }}>CUT</span>
                         </span>
                     </Link>
                     <p className="tagline" style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>Auto-detect & transparentize frame slots</p>
@@ -1860,11 +1986,9 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                             <div className="exports-limit-badge" style={{ fontSize: '13px', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', padding: '6px 14px', borderRadius: '999px', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-muted)' }}>
                                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: user.tier === 'free' ? '#9595b0' : user.tier === 'pro' ? '#a78bfa' : '#06b6d4' }}></span>
                                 <span>Tier: <strong style={{ color: 'var(--text-primary)' }}>{user.tier.toUpperCase()}</strong></span>
-                                {user.tier === 'free' && (
-                                    <span style={{ borderLeft: '1px solid var(--border-subtle)', paddingLeft: '10px', color: 'var(--text-muted)' }}>
-                                        Exports: <strong style={{ color: 'var(--accent-purple)' }}>{usageCount}/5</strong>
-                                    </span>
-                                )}
+                                <span style={{ borderLeft: '1px solid var(--border-subtle)', paddingLeft: '10px', color: 'var(--text-muted)' }}>
+                                    Tokens: <strong style={{ color: 'var(--accent, #FF5500)' }}>{user.tokens ?? 0}</strong>
+                                </span>
                             </div>
                             {user.tier === 'free' && (
                                 <button 
@@ -2288,6 +2412,14 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                                             </div>
                                         </div>
                                     )}
+                                    <button 
+                                        className="editor-btn editor-btn-primary" 
+                                        onClick={applyBgStyleAction} 
+                                        disabled={!imageLoaded} 
+                                        style={{ width: '100%', marginTop: '16px' }}
+                                    >
+                                        Apply Background Style (1 Token)
+                                    </button>
                                 </>
                             )}
 
@@ -2412,6 +2544,14 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                                         <label className="control-label">CTA Label</label>
                                         <input type="text" className="form-input" value={adTextCTA} onChange={(e) => setAdTextCTA(e.target.value)} />
                                     </div>
+                                    <button 
+                                        className="editor-btn editor-btn-primary" 
+                                        onClick={applyAiAdOverlay} 
+                                        disabled={!imageLoaded} 
+                                        style={{ width: '100%', marginTop: '16px' }}
+                                    >
+                                        Generate Ad Banner (3 Tokens)
+                                    </button>
                                 </>
                             )}
 

@@ -67,13 +67,19 @@ if response.status_code == 200:
 
     return (
         <div className="landing-page-root">
+            {/* Background glow objects */}
+            <div className="landing-bg">
+                <div className="glow glow-1"></div>
+                <div className="glow glow-2"></div>
+            </div>
+
             {/* Header */}
             <header className="navbar">
                 <div className="nav-container">
-                    <Link href="/" className="logo" style={{ textDecoration: 'none' }}>
-                        <span style={{ textTransform: 'uppercase', letterSpacing: '0.04em', display: 'inline-flex', alignItems: 'center', fontSize: '20px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-                            <strong style={{ fontWeight: '900', color: '#475569' }}>FRAME</strong>
-                            <span style={{ fontWeight: '300', color: '#94a3b8' }}>CUT</span>
+                    <Link href="/" className="logo-container">
+                        <span className="logo-brand">
+                            <strong className="logo-strong">FRAME</strong>
+                            <span className="logo-light">CUT</span>
                         </span>
                     </Link>
                     <nav className="nav-links">
@@ -84,7 +90,7 @@ if response.status_code == 200:
                     </nav>
                     {user ? (
                         <div className="nav-auth-group" style={{ display: 'flex', alignItems: 'center', gap: '16px', position: 'relative' }}>
-                            <Link href="/editor" className="btn btn-glass" style={{ fontSize: '13px', padding: '8px 18px', borderRadius: '999px', fontWeight: '600' }}>Workspace</Link>
+                            <Link href="/editor" className="btn btn-glass" style={{ fontSize: '13px', padding: '8px 18px' }}>Workspace</Link>
                             <div className="profile-dropdown-container" style={{ position: 'relative' }}>
                                 <button 
                                     onClick={() => setShowProfileDropdown(!showProfileDropdown)} 
@@ -105,7 +111,7 @@ if response.status_code == 200:
                                                 e.currentTarget.onerror = null;
                                                 e.currentTarget.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23a78bfa'><circle cx='12' cy='8' r='4'/><path d='M2 20c0-4.4 3.6-8 8-8h4c4.4 0 8 3.6 8 8v2H2v-2z'/></svg>";
                                             }}
-                                            style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--panel-border)' }} 
+                                            style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--border-color)' }} 
                                         />
                                     ) : (
                                         <div 
@@ -113,14 +119,14 @@ if response.status_code == 200:
                                                 width: '36px', 
                                                 height: '36px', 
                                                 borderRadius: '50%', 
-                                                backgroundColor: 'var(--accent-purple)', 
-                                                color: '#fff', 
+                                                backgroundColor: 'var(--accent)', 
+                                                color: '#000', 
                                                 display: 'flex', 
                                                 alignItems: 'center', 
                                                 justifyContent: 'center', 
                                                 fontWeight: '700',
                                                 fontSize: '14px',
-                                                border: '1px solid var(--panel-border)'
+                                                border: '1px solid var(--border-color)'
                                             }}
                                         >
                                             {(user.name || user.email || 'U').charAt(0).toUpperCase()}
@@ -135,33 +141,33 @@ if response.status_code == 200:
                                             right: 0, 
                                             top: '44px', 
                                             width: '220px', 
-                                            background: 'var(--bg-color)', 
-                                            border: '1px solid var(--panel-border)', 
-                                            borderRadius: '12px', 
-                                            boxShadow: '0 10px 25px rgba(0,0,0,0.08)', 
+                                            background: 'var(--bg-secondary)', 
+                                            border: '1px solid var(--border-color)', 
+                                            borderRadius: '0px', 
+                                            boxShadow: '0 10px 25px rgba(0,0,0,0.3)', 
                                             padding: '12px',
                                             zIndex: 1000,
                                             textAlign: 'left'
                                         }}
                                     >
-                                        <div style={{ padding: '4px 8px 8px 8px', borderBottom: '1px solid var(--panel-border)', marginBottom: '8px' }}>
-                                            <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-color)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name || user.email.split('@')[0]}</div>
-                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</div>
-                                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '6px', fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', background: 'var(--glow-violet)', color: 'var(--accent-purple)', padding: '2px 8px', borderRadius: '4px' }}>
-                                                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--accent-purple)' }}></span>
+                                        <div style={{ padding: '4px 8px 8px 8px', borderBottom: '1px solid var(--border-color)', marginBottom: '8px' }}>
+                                            <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name || user.email.split('@')[0]}</div>
+                                            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</div>
+                                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '6px', fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', background: 'var(--accent-glow)', color: 'var(--accent)', padding: '2px 8px', borderRadius: '0px' }}>
+                                                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--accent)' }}></span>
                                                 {user.tier} Plan
                                             </div>
                                         </div>
-                                        <Link href="/editor" style={{ display: 'block', padding: '8px', fontSize: '13px', color: 'var(--text-color)', textDecoration: 'none', borderRadius: '6px', transition: 'background 0.2s' }} className="dropdown-item-hover">
+                                        <Link href="/editor" style={{ display: 'block', padding: '8px', fontSize: '13px', color: 'var(--text-primary)', textDecoration: 'none', transition: 'background 0.2s' }} className="dropdown-item-hover">
                                             Go to Workspace
                                         </Link>
-                                        <Link href="/pricing" style={{ display: 'block', padding: '8px', fontSize: '13px', color: 'var(--text-color)', textDecoration: 'none', borderRadius: '6px', transition: 'background 0.2s' }} className="dropdown-item-hover">
+                                        <Link href="/pricing" style={{ display: 'block', padding: '8px', fontSize: '13px', color: 'var(--text-primary)', textDecoration: 'none', transition: 'background 0.2s' }} className="dropdown-item-hover">
                                             Upgrade & Pricing
                                         </Link>
-                                        <div style={{ borderTop: '1px solid var(--panel-border)', marginTop: '8px', paddingTop: '8px' }}>
+                                        <div style={{ borderTop: '1px solid var(--border-color)', marginTop: '8px', paddingTop: '8px' }}>
                                             <button 
                                                 onClick={() => { logout(); setShowProfileDropdown(false); }} 
-                                                style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: '8px', fontSize: '13px', color: 'var(--accent-pink)', cursor: 'pointer', borderRadius: '6px' }}
+                                                style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: '8px', fontSize: '13px', color: 'var(--accent)', cursor: 'pointer' }}
                                                 className="dropdown-item-hover"
                                             >
                                                 Log Out
@@ -174,7 +180,7 @@ if response.status_code == 200:
                     ) : (
                         <div className="nav-auth-group" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                             <button className="nav-link" onClick={() => { setAuthMode('login'); setShowAuthModal(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>Sign In</button>
-                            <button className="btn btn-primary" onClick={() => { setAuthMode('signup'); setShowAuthModal(true); }} style={{ cursor: 'pointer', padding: '8px 20px', borderRadius: '999px', fontWeight: '600', fontSize: '13px' }}>Sign Up</button>
+                            <button className="btn btn-primary" onClick={() => { setAuthMode('signup'); setShowAuthModal(true); }}>Sign Up</button>
                         </div>
                     )}
                 </div>
@@ -213,7 +219,7 @@ if response.status_code == 200:
                                         <tr key={index}>
                                             <td className="param-name">{param.name}</td>
                                             <td className="param-type">{param.type}</td>
-                                            <td style={{ fontSize: '13px', color: param.required === 'Yes' ? '#ef4444' : 'var(--text-muted)' }}>
+                                            <td style={{ fontSize: '13px', color: param.required === 'Yes' ? '#ff5500' : 'var(--text-secondary)' }}>
                                                 {param.required}
                                             </td>
                                             <td>{param.desc}</td>
@@ -225,8 +231,9 @@ if response.status_code == 200:
                     </div>
 
                     {/* Code playground / terminal */}
-                    <div className="api-code-panel" style={{ marginTop: '24px' }}>
-                        <div className="code-terminal">
+                    <div className="api-code-panel">
+                        <div className="code-terminal crop-box">
+                            <div className="crop-corners-inner"></div>
                             <div className="terminal-header">
                                 <div className="terminal-dots">
                                     <div className="terminal-dot" style={{ backgroundColor: '#ef4444' }}></div>
@@ -259,12 +266,12 @@ if response.status_code == 200:
                             </div>
                         </div>
                         {user && user.tier === 'team' ? (
-                            <div style={{ marginTop: '24px', padding: '20px', background: 'var(--panel-bg)', border: '1px solid var(--panel-border)', borderRadius: '16px' }}>
+                            <div style={{ marginTop: '24px', padding: '20px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                                    <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-muted)' }}>YOUR LIVE API KEY</span>
+                                    <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)' }}>YOUR LIVE API KEY</span>
                                     <button 
                                         onClick={generateNewApiKey}
-                                        style={{ background: 'none', border: 'none', color: '#06b6d4', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}
+                                        style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}
                                     >
                                         Regenerate Key
                                     </button>
@@ -274,22 +281,23 @@ if response.status_code == 200:
                                         type="text" 
                                         readOnly 
                                         value={user.apiKey || ''} 
-                                        style={{ flex: 1, background: 'rgba(9, 9, 11, 0.05)', border: '1px solid var(--panel-border)', borderRadius: '8px', padding: '10px 12px', fontSize: '13px', color: '#7c3aed', fontFamily: 'monospace' }}
+                                        style={{ flex: 1, background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)', padding: '10px 12px', fontSize: '13px', color: 'var(--accent)', fontFamily: 'monospace', outline: 'none' }}
                                     />
                                     <button 
                                         onClick={() => {
                                             navigator.clipboard.writeText(user.apiKey || '');
                                             alert('API Key copied to clipboard!');
                                         }}
-                                        style={{ padding: '10px 16px', background: 'var(--primary-grad)', border: 'none', borderRadius: '8px', fontWeight: '700', color: '#fff', cursor: 'pointer', fontSize: '13px' }}
+                                        className="btn btn-primary"
+                                        style={{ padding: '10px 16px' }}
                                     >
                                         Copy
                                     </button>
                                 </div>
                             </div>
                         ) : (
-                            <div style={{ marginTop: '24px', padding: '24px', background: 'rgba(6, 182, 212, 0.03)', border: '1px dashed rgba(6, 182, 212, 0.3)', borderRadius: '16px', textAlign: 'center' }}>
-                                <p style={{ fontSize: '14px', marginBottom: '16px', color: 'var(--text-muted)' }}>
+                            <div style={{ marginTop: '24px', padding: '24px', background: 'var(--accent-glow)', border: '1px dashed var(--accent)', textAlign: 'center' }}>
+                                <p style={{ fontSize: '14px', marginBottom: '16px', color: 'var(--text-secondary)' }}>
                                     API credentials are locked. Please upgrade to the <strong>Team Plan</strong> to generate live tokens.
                                 </p>
                                 <button 
@@ -301,7 +309,7 @@ if response.status_code == 200:
                                             setShowUpgradeModal(true);
                                         }
                                     }}
-                                    style={{ padding: '10px 20px', background: 'var(--primary-grad)', border: 'none', borderRadius: '999px', fontWeight: '700', color: '#000', cursor: 'pointer', fontSize: '13px' }}
+                                    className="btn btn-primary"
                                 >
                                     Unlock API Key
                                 </button>
@@ -315,10 +323,10 @@ if response.status_code == 200:
             <footer className="footer">
                 <div className="footer-container">
                     <div className="footer-brand">
-                        <Link href="/" className="logo" style={{ textDecoration: 'none' }}>
-                            <span style={{ textTransform: 'uppercase', letterSpacing: '0.04em', display: 'inline-flex', alignItems: 'center', fontSize: '20px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-                                <strong style={{ fontWeight: '900', color: '#475569' }}>FRAME</strong>
-                                <span style={{ fontWeight: '300', color: '#94a3b8' }}>CUT</span>
+                        <Link href="/" className="logo-container">
+                            <span className="logo-brand">
+                                <strong className="logo-strong">FRAME</strong>
+                                <span className="logo-light">CUT</span>
                             </span>
                         </Link>
                         <p className="footer-desc">Cutting-edge background removal for digital creators and templates.</p>

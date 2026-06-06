@@ -94,13 +94,19 @@ export default function Pricing() {
 
     return (
         <div className="landing-page-root">
+            {/* Background glow objects */}
+            <div className="landing-bg">
+                <div className="glow glow-1"></div>
+                <div className="glow glow-2"></div>
+            </div>
+
             {/* Header */}
             <header className="navbar">
                 <div className="nav-container">
-                    <Link href="/" className="logo" style={{ textDecoration: 'none' }}>
-                        <span style={{ textTransform: 'uppercase', letterSpacing: '0.04em', display: 'inline-flex', alignItems: 'center', fontSize: '20px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-                            <strong style={{ fontWeight: '900', color: '#475569' }}>FRAME</strong>
-                            <span style={{ fontWeight: '300', color: '#94a3b8' }}>CUT</span>
+                    <Link href="/" className="logo-container">
+                        <span className="logo-brand">
+                            <strong className="logo-strong">FRAME</strong>
+                            <span className="logo-light">CUT</span>
                         </span>
                     </Link>
                     <nav className="nav-links">
@@ -111,7 +117,7 @@ export default function Pricing() {
                     </nav>
                     {user ? (
                         <div className="nav-auth-group" style={{ display: 'flex', alignItems: 'center', gap: '16px', position: 'relative' }}>
-                            <Link href="/editor" className="btn btn-glass" style={{ fontSize: '13px', padding: '8px 18px', borderRadius: '999px', fontWeight: '600' }}>Workspace</Link>
+                            <Link href="/editor" className="btn btn-glass" style={{ fontSize: '13px', padding: '8px 18px' }}>Workspace</Link>
                             <div className="profile-dropdown-container" style={{ position: 'relative' }}>
                                 <button 
                                     onClick={() => setShowProfileDropdown(!showProfileDropdown)} 
@@ -132,7 +138,7 @@ export default function Pricing() {
                                                 e.currentTarget.onerror = null;
                                                 e.currentTarget.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23a78bfa'><circle cx='12' cy='8' r='4'/><path d='M2 20c0-4.4 3.6-8 8-8h4c4.4 0 8 3.6 8 8v2H2v-2z'/></svg>";
                                             }}
-                                            style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--panel-border)' }} 
+                                            style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--border-color)' }} 
                                         />
                                     ) : (
                                         <div 
@@ -140,14 +146,14 @@ export default function Pricing() {
                                                 width: '36px', 
                                                 height: '36px', 
                                                 borderRadius: '50%', 
-                                                backgroundColor: 'var(--accent-purple)', 
-                                                color: '#fff', 
+                                                backgroundColor: 'var(--accent)', 
+                                                color: '#000', 
                                                 display: 'flex', 
                                                 alignItems: 'center', 
                                                 justifyContent: 'center', 
                                                 fontWeight: '700',
                                                 fontSize: '14px',
-                                                border: '1px solid var(--panel-border)'
+                                                border: '1px solid var(--border-color)'
                                             }}
                                         >
                                             {(user.name || user.email || 'U').charAt(0).toUpperCase()}
@@ -162,33 +168,33 @@ export default function Pricing() {
                                             right: 0, 
                                             top: '44px', 
                                             width: '220px', 
-                                            background: 'var(--bg-color)', 
-                                            border: '1px solid var(--panel-border)', 
-                                            borderRadius: '12px', 
-                                            boxShadow: '0 10px 25px rgba(0,0,0,0.08)', 
+                                            background: 'var(--bg-secondary)', 
+                                            border: '1px solid var(--border-color)', 
+                                            borderRadius: '0px', 
+                                            boxShadow: '0 10px 25px rgba(0,0,0,0.3)', 
                                             padding: '12px',
                                             zIndex: 1000,
                                             textAlign: 'left'
                                         }}
                                     >
-                                        <div style={{ padding: '4px 8px 8px 8px', borderBottom: '1px solid var(--panel-border)', marginBottom: '8px' }}>
-                                            <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-color)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name || user.email.split('@')[0]}</div>
-                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</div>
-                                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '6px', fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', background: 'var(--glow-violet)', color: 'var(--accent-purple)', padding: '2px 8px', borderRadius: '4px' }}>
-                                                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--accent-purple)' }}></span>
+                                        <div style={{ padding: '4px 8px 8px 8px', borderBottom: '1px solid var(--border-color)', marginBottom: '8px' }}>
+                                            <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name || user.email.split('@')[0]}</div>
+                                            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</div>
+                                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '6px', fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', background: 'var(--accent-glow)', color: 'var(--accent)', padding: '2px 8px', borderRadius: '0px' }}>
+                                                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--accent)' }}></span>
                                                 {user.tier} Plan
                                             </div>
                                         </div>
-                                        <Link href="/editor" style={{ display: 'block', padding: '8px', fontSize: '13px', color: 'var(--text-color)', textDecoration: 'none', borderRadius: '6px', transition: 'background 0.2s' }} className="dropdown-item-hover">
+                                        <Link href="/editor" style={{ display: 'block', padding: '8px', fontSize: '13px', color: 'var(--text-primary)', textDecoration: 'none', transition: 'background 0.2s' }} className="dropdown-item-hover">
                                             Go to Workspace
                                         </Link>
-                                        <Link href="/pricing" style={{ display: 'block', padding: '8px', fontSize: '13px', color: 'var(--text-color)', textDecoration: 'none', borderRadius: '6px', transition: 'background 0.2s' }} className="dropdown-item-hover">
+                                        <Link href="/pricing" style={{ display: 'block', padding: '8px', fontSize: '13px', color: 'var(--text-primary)', textDecoration: 'none', transition: 'background 0.2s' }} className="dropdown-item-hover">
                                             Upgrade & Pricing
                                         </Link>
-                                        <div style={{ borderTop: '1px solid var(--panel-border)', marginTop: '8px', paddingTop: '8px' }}>
+                                        <div style={{ borderTop: '1px solid var(--border-color)', marginTop: '8px', paddingTop: '8px' }}>
                                             <button 
                                                 onClick={() => { logout(); setShowProfileDropdown(false); }} 
-                                                style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: '8px', fontSize: '13px', color: 'var(--accent-pink)', cursor: 'pointer', borderRadius: '6px' }}
+                                                style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: '8px', fontSize: '13px', color: 'var(--accent)', cursor: 'pointer' }}
                                                 className="dropdown-item-hover"
                                             >
                                                 Log Out
@@ -201,7 +207,7 @@ export default function Pricing() {
                     ) : (
                         <div className="nav-auth-group" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                             <button className="nav-link" onClick={() => { setAuthMode('login'); setShowAuthModal(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>Sign In</button>
-                            <button className="btn btn-primary" onClick={() => { setAuthMode('signup'); setShowAuthModal(true); }} style={{ cursor: 'pointer', padding: '8px 20px', borderRadius: '999px', fontWeight: '600', fontSize: '13px' }}>Sign Up</button>
+                            <button className="btn btn-primary" onClick={() => { setAuthMode('signup'); setShowAuthModal(true); }}>Sign Up</button>
                         </div>
                     )}
                 </div>
@@ -210,10 +216,10 @@ export default function Pricing() {
             {/* Pricing Section */}
             <section className="pricing-section">
                 <div className="hero-badge">Transparent Pricing</div>
-                <h1 className="hero-title" style={{ fontSize: '48px', marginBottom: '24px' }}>
+                <h1 className="hero-title">
                     Choose the plan that fits <br /><span>your design workflow</span>
                 </h1>
-                <p className="hero-subtitle" style={{ marginBottom: '40px' }}>
+                <p className="hero-subtitle">
                     Unlock unlimited rendering speeds, advanced masking control, and complete API integration.
                 </p>
 
@@ -236,7 +242,8 @@ export default function Pricing() {
                     {plans.map((plan, i) => {
                         const price = billingCycle === 'monthly' ? plan.price.monthly : plan.price.yearly;
                         return (
-                            <div key={i} className={`pricing-card ${plan.featured ? 'featured' : ''}`}>
+                            <div key={i} className={`pricing-card crop-box ${plan.featured ? 'featured' : ''}`}>
+                                <div className="crop-corners-inner"></div>
                                 {plan.featured && <div className="pricing-badge">Popular</div>}
                                 <div>
                                     <div className="pricing-tier">{plan.name}</div>
@@ -259,7 +266,7 @@ export default function Pricing() {
                                 <button 
                                     onClick={() => handleSelectPlan(plan.name)}
                                     className={`btn ${plan.featured ? 'btn-primary' : 'btn-glass'}`}
-                                    style={{ width: '100%', textAlign: 'center', border: 'none' }}
+                                    style={{ width: '100%', textAlign: 'center' }}
                                     disabled={user?.tier === plan.name.toLowerCase() || (plan.name === 'Starter' && !user)}
                                 >
                                     {user?.tier === plan.name.toLowerCase() ? 'Active Plan' : plan.cta}
@@ -275,7 +282,8 @@ export default function Pricing() {
                 <h2 className="faq-title">Frequently Asked Questions</h2>
                 <div className="faq-grid">
                     {faqs.map((faq, i) => (
-                        <div key={i} className="faq-item" onClick={() => toggleFaq(i)} style={{ cursor: 'pointer' }}>
+                        <div key={i} className="faq-item crop-box" onClick={() => toggleFaq(i)} style={{ cursor: 'pointer' }}>
+                            <div className="crop-corners-inner"></div>
                             <div className="faq-question">
                                 <span>{faq.q}</span>
                                 <svg 
@@ -299,10 +307,10 @@ export default function Pricing() {
             <footer className="footer">
                 <div className="footer-container">
                     <div className="footer-brand">
-                        <Link href="/" className="logo" style={{ textDecoration: 'none' }}>
-                            <span style={{ textTransform: 'uppercase', letterSpacing: '0.04em', display: 'inline-flex', alignItems: 'center', fontSize: '20px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-                                <strong style={{ fontWeight: '900', color: '#475569' }}>FRAME</strong>
-                                <span style={{ fontWeight: '300', color: '#94a3b8' }}>CUT</span>
+                        <Link href="/" className="logo-container">
+                            <span className="logo-brand">
+                                <strong className="logo-strong">FRAME</strong>
+                                <span className="logo-light">CUT</span>
                             </span>
                         </Link>
                         <p className="footer-desc">Cutting-edge background removal for digital creators and templates.</p>
