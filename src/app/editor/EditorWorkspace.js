@@ -1061,7 +1061,6 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                     oData[i * 4 + 3] = Math.round((oData[i * 4 + 3] * finalMask[i]) / 255);
                 }
                 
-                outCtx.putImageData(outImageData, 0, 0);
                 cutoutResult = outImageData;
             });
             
@@ -1114,6 +1113,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
             setProcessing({ visible: true, progress: 20, title: 'AI processing image background...' });
             
             const processedBlob = await removeBackground(img.src, {
+                model: 'small',
                 debug: false,
                 progress: (key, current, total) => {
                     const percent = Math.round((current / total) * 100);
@@ -2689,7 +2689,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                         <div className="canvas-area" style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
                             {activeTool === 'bulk-editor' ? (
                                 <div className="bulk-editor-workspace" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', position: 'relative', zIndex: 1 }}>
-                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'conic-gradient(#f1f5f9 0.25turn, #ffffff 0.25turn 0.5turn, #f1f5f9 0.5turn 0.75turn, #ffffff 0.75turn)', backgroundSize: '20px 20px' }}></div>
+                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'conic-gradient(#d4d4d8 0.25turn, #fafafa 0.25turn 0.5turn, #d4d4d8 0.5turn 0.75turn, #fafafa 0.75turn)', backgroundSize: '20px 20px' }}></div>
                                     <div className="upload-zone" style={{ zIndex: 1, maxWidth: '500px' }} onClick={() => document.getElementById('bulk-files-selector')?.click()}>
                                         <div className="upload-icon">⚡</div>
                                         <h2 className="upload-title">Bulk Image Editor</h2>
@@ -2713,7 +2713,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                                 </div>
                             ) : activeTool === 'ai-generator' && !imageLoaded ? (
                                 <div className="ai-workspace-start" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', position: 'relative', zIndex: 1 }}>
-                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'conic-gradient(#f1f5f9 0.25turn, #ffffff 0.25turn 0.5turn, #f1f5f9 0.5turn 0.75turn, #ffffff 0.75turn)', backgroundSize: '20px 20px' }}></div>
+                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'conic-gradient(#d4d4d8 0.25turn, #fafafa 0.25turn 0.5turn, #d4d4d8 0.5turn 0.75turn, #fafafa 0.75turn)', backgroundSize: '20px 20px' }}></div>
                                     <div style={{ zIndex: 1, textAlign: 'center', maxWidth: '500px' }}>
                                         <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎨</div>
                                         <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', color: 'var(--text-primary)' }}>AI Image Creator</h2>
@@ -2724,7 +2724,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                                 </div>
                             ) : activeTool === 'ai-video' && !generatedVideoUrl ? (
                                 <div className="ai-workspace-start" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', position: 'relative', zIndex: 1 }}>
-                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'conic-gradient(#f1f5f9 0.25turn, #ffffff 0.25turn 0.5turn, #f1f5f9 0.5turn 0.75turn, #ffffff 0.75turn)', backgroundSize: '20px 20px' }}></div>
+                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'conic-gradient(#d4d4d8 0.25turn, #fafafa 0.25turn 0.5turn, #d4d4d8 0.5turn 0.75turn, #fafafa 0.75turn)', backgroundSize: '20px 20px' }}></div>
                                     <div style={{ zIndex: 1, textAlign: 'center', maxWidth: '500px' }}>
                                         <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎬</div>
                                         <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', color: 'var(--text-primary)' }}>AI Video Motion Studio</h2>
@@ -2735,7 +2735,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                                 </div>
                             ) : activeTool === 'video-remover' && !videoSample ? (
                                 <div className="video-workspace-start" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', position: 'relative', zIndex: 1 }}>
-                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'conic-gradient(#f1f5f9 0.25turn, #ffffff 0.25turn 0.5turn, #f1f5f9 0.5turn 0.75turn, #ffffff 0.75turn)', backgroundSize: '20px 20px' }}></div>
+                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'conic-gradient(#d4d4d8 0.25turn, #fafafa 0.25turn 0.5turn, #d4d4d8 0.5turn 0.75turn, #fafafa 0.75turn)', backgroundSize: '20px 20px' }}></div>
                                     <div style={{ zIndex: 1, textAlign: 'center', maxWidth: '500px' }}>
                                         <div style={{ fontSize: '48px', marginBottom: '16px' }}>📹</div>
                                         <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', color: 'var(--text-primary)' }}>Video Background Remover</h2>
@@ -2753,7 +2753,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                                 </div>
                             ) : !imageLoaded && activeTool !== 'video-remover' ? (
                                 <div className="workspace-upload-wrapper" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', position: 'relative', zIndex: 1 }}>
-                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'conic-gradient(#f1f5f9 0.25turn, #ffffff 0.25turn 0.5turn, #f1f5f9 0.5turn 0.75turn, #ffffff 0.75turn)', backgroundSize: '20px 20px' }}></div>
+                                    <div className="checkerboard-bg" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'conic-gradient(#d4d4d8 0.25turn, #fafafa 0.25turn 0.5turn, #d4d4d8 0.5turn 0.75turn, #fafafa 0.75turn)', backgroundSize: '20px 20px' }}></div>
                                     <div 
                                         className="upload-zone"
                                         style={{ zIndex: 1 }}
@@ -2838,7 +2838,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                                                 boxShadow: '0 20px 48px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.02)',
                                                 border: '1px solid rgba(0, 0, 0, 0.06)',
                                                 overflow: 'hidden',
-                                                backgroundImage: 'conic-gradient(#f1f5f9 0.25turn, #ffffff 0.25turn 0.5turn, #f1f5f9 0.5turn 0.75turn, #ffffff 0.75turn)',
+                                                backgroundImage: 'conic-gradient(#d4d4d8 0.25turn, #fafafa 0.25turn 0.5turn, #d4d4d8 0.5turn 0.75turn, #fafafa 0.75turn)',
                                                 backgroundSize: '20px 20px'
                                             }}
                                         >
