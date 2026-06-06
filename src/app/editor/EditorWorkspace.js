@@ -617,6 +617,9 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                 }
                 fitCanvasToView();
                 
+                // Render the original image immediately so user sees it
+                renderCanvas();
+                
                 // Auto-run AI background removal on upload
                 if (activeTool === 'bg-remover' || activeTool === 'change-bg') {
                     if (bgRemovalMode === 'ai') {
@@ -1116,44 +1119,6 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
             return new Blob([array], { type: mime });
         };
         
-        // Helper: apply edge softness post-processing for cleaner cutout edges
-        const applyEdgeSoftness = (imageData, softnessRadius) => {
-            if (softnessRadius <= 0) return imageData;
-            const w = imageData.width;
-            const h = imageData.height;
-            const data = imageData.data;
-            const radius = Math.max(1, softnessRadius);
-            
-            // Extract alpha channel
-            const alpha = new Uint8Array(w * h);
-            for (let i = 0; i < w * h; i++) alpha[i] = data[i * 4 + 3];
-            
-            // Horizontal blur pass
-            const tempAlpha = new Uint8Array(w * h);
-            for (let y = 0; y < h; y++) {
-                for (let x = 0; x < w; x++) {
-                    let sum = 0, count = 0;
-                    for (let dx = -radius; dx <= radius; dx++) {
-                        const nx = x + dx;
-                        if (nx >= 0 && nx < w) { sum += alpha[y * w + nx]; count++; }
-                    }
-                    tempAlpha[y * w + x] = sum / count;
-                }
-            }
-            // Vertical blur pass
-            for (let y = 0; y < h; y++) {
-                for (let x = 0; x < w; x++) {
-                    let sum = 0, count = 0;
-                    for (let dy = -radius; dy <= radius; dy++) {
-                        const ny = y + dy;
-                        if (ny >= 0 && ny < h) { sum += tempAlpha[ny * w + x]; count++; }
-                    }
-                    data[(y * w + x) * 4 + 3] = Math.round(sum / count);
-                }
-            }
-            return imageData;
-        };
-        
         try {
             // Convert image to Blob for reliable AI input
             const inputBlob = img.src.startsWith('data:') ? dataURLtoBlob(img.src) : img.src;
@@ -1166,7 +1131,6 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
             
             const processedBlob = await removeBackground(inputBlob, {
                 debug: false,
-                output: { format: 'image/png', quality: 1 },
                 progress: (key, current, total) => {
                     const percent = Math.round((current / total) * 100);
                     let phase = 'AI is thinking...';
@@ -1189,19 +1153,15 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                 resultImg.src = URL.createObjectURL(processedBlob);
             });
             
-            const w = imgData.width;
-            const h = imgData.height;
+            // Use the result image's natural dimensions to preserve quality
+            const w = resultImg.naturalWidth || imgData.width;
+            const h = resultImg.naturalHeight || imgData.height;
             const tempCanvas = document.createElement('canvas');
             tempCanvas.width = w;
             tempCanvas.height = h;
             const tempCtx = tempCanvas.getContext('2d');
-            tempCtx.drawImage(resultImg, 0, 0, w, h);
-            let cutoutResult = tempCtx.getImageData(0, 0, w, h);
-            
-            // Apply edge softness post-processing
-            if (softness > 0) {
-                cutoutResult = applyEdgeSoftness(cutoutResult, softness);
-            }
+            tempCtx.drawImage(resultImg, 0, 0);
+            const cutoutResult = tempCtx.getImageData(0, 0, w, h);
             
             // Clean up Object URL
             URL.revokeObjectURL(resultImg.src);
@@ -1221,7 +1181,6 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                 
                 const processedBlob2 = await removeBackground2(inputBlob, {
                     debug: false,
-                    output: { format: 'image/png', quality: 1 },
                     progress: (key, current, total) => {
                         const percent = Math.round((current / total) * 100);
                         const overallPercent = 30 + Math.round((percent / 100) * 65);
@@ -1237,19 +1196,14 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                     resultImg2.src = URL.createObjectURL(processedBlob2);
                 });
                 
-                const w2 = imgData.width;
-                const h2 = imgData.height;
+                const w2 = resultImg2.naturalWidth || imgData.width;
+                const h2 = resultImg2.naturalHeight || imgData.height;
                 const tempCanvas2 = document.createElement('canvas');
                 tempCanvas2.width = w2;
                 tempCanvas2.height = h2;
                 const tempCtx2 = tempCanvas2.getContext('2d');
-                tempCtx2.drawImage(resultImg2, 0, 0, w2, h2);
-                let cutoutResult2 = tempCtx2.getImageData(0, 0, w2, h2);
-                
-                // Apply edge softness post-processing
-                if (softness > 0) {
-                    cutoutResult2 = applyEdgeSoftness(cutoutResult2, softness);
-                }
+                tempCtx2.drawImage(resultImg2, 0, 0);
+                const cutoutResult2 = tempCtx2.getImageData(0, 0, w2, h2);
                 
                 URL.revokeObjectURL(resultImg2.src);
                 
@@ -2269,14 +2223,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                                     </div>
 
                                     {bgRemovalMode === 'ai' ? (
-                                        <>
-
-
-                                            <div className="control-group">
-                                                <label className="control-label">Edge Softness: <span className="control-value">{softness}</span></label>
-                                                <input type="range" className="slider" min="0" max="10" value={softness} onChange={(e) => setSoftness(parseInt(e.target.value))} />
-                                            </div>
-                                        </>
+                                        null
                                     ) : (
                                         <>
                                             <div className="control-group">
@@ -2888,16 +2835,10 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                             ) : (
                                 <>
                                     <div className="canvas-tabs" style={{ display: 'flex', gap: '8px', padding: '12px 16px', background: 'rgba(9, 9, 11, 0.4)', borderBottom: '1px solid var(--panel-border)' }}>
-                                        <button className={`tab ${currentView === 'original' ? 'active' : ''}`} onClick={() => setCurrentView('original')} style={{ border: 'none', background: 'none', cursor: 'pointer', color: currentView === 'original' ? '#fff' : 'var(--text-muted)', fontWeight: '700', padding: '6px 12px' }}>
+                                        <button className={`tab ${currentView === 'original' ? 'active' : ''}`} onClick={() => setCurrentView('original')} style={{ border: 'none', background: 'none', cursor: 'pointer', color: currentView === 'original' ? '#fff' : 'var(--text-muted)', fontWeight: '700', padding: '6px 12px', fontSize: '13px' }}>
                                             Original View
                                         </button>
-                                        <button className={`tab ${currentView === 'result' ? 'active' : ''}`} onClick={() => {
-                                            if (!resultImageData) {
-                                                showToast('Apply transparency first', 'info');
-                                                return;
-                                            }
-                                            setCurrentView('result');
-                                        }} style={{ border: 'none', background: 'none', cursor: 'pointer', color: currentView === 'result' ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: '700', padding: '6px 12px' }}>
+                                        <button className={`tab ${currentView === 'result' ? 'active' : ''}`} onClick={() => setCurrentView('result')} style={{ border: 'none', background: 'none', cursor: 'pointer', color: currentView === 'result' ? '#fff' : 'var(--text-muted)', fontWeight: '700', padding: '6px 12px', fontSize: '13px' }}>
                                             Result View
                                         </button>
                                     </div>
