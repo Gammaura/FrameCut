@@ -617,13 +617,9 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                 }
                 fitCanvasToView();
                 
-                if (activeTool === 'bg-remover' || activeTool === 'change-bg') {
-                    if (bgRemovalMode === 'ai') {
-                        applyAiAutoCutout(img, imgData);
-                    } else {
-                        autoRemoveBackground(img, imgData);
-                    }
-                } else {
+                // Don't auto-run AI on upload — let user click the button
+                // Just auto-detect background color for chroma key mode
+                if (activeTool !== 'bg-remover' || bgRemovalMode !== 'ai') {
                     autoDetectColor(imgData);
                 }
             }, 100);
@@ -1103,17 +1099,69 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
             return;
         }
 
-        setProcessing({ visible: true, progress: 10, title: 'Initializing Professional AI...' });
+        setProcessing({ visible: true, progress: 10, title: 'Initializing AI...' });
+        
+        // Helper: convert data URL to Blob for reliable AI processing
+        const dataURLtoBlob = (dataURL) => {
+            const parts = dataURL.split(',');
+            const mime = parts[0].match(/:(.*?);/)[1];
+            const binary = atob(parts[1]);
+            const array = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) array[i] = binary.charCodeAt(i);
+            return new Blob([array], { type: mime });
+        };
+        
+        // Helper: apply edge softness post-processing for cleaner cutout edges
+        const applyEdgeSoftness = (imageData, softnessRadius) => {
+            if (softnessRadius <= 0) return imageData;
+            const w = imageData.width;
+            const h = imageData.height;
+            const data = imageData.data;
+            const radius = Math.max(1, softnessRadius);
+            
+            // Extract alpha channel
+            const alpha = new Uint8Array(w * h);
+            for (let i = 0; i < w * h; i++) alpha[i] = data[i * 4 + 3];
+            
+            // Horizontal blur pass
+            const tempAlpha = new Uint8Array(w * h);
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    let sum = 0, count = 0;
+                    for (let dx = -radius; dx <= radius; dx++) {
+                        const nx = x + dx;
+                        if (nx >= 0 && nx < w) { sum += alpha[y * w + nx]; count++; }
+                    }
+                    tempAlpha[y * w + x] = sum / count;
+                }
+            }
+            // Vertical blur pass
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    let sum = 0, count = 0;
+                    for (let dy = -radius; dy <= radius; dy++) {
+                        const ny = y + dy;
+                        if (ny >= 0 && ny < h) { sum += tempAlpha[ny * w + x]; count++; }
+                    }
+                    data[(y * w + x) * 4 + 3] = Math.round(sum / count);
+                }
+            }
+            return imageData;
+        };
         
         try {
+            // Convert image to Blob for reliable AI input
+            const inputBlob = img.src.startsWith('data:') ? dataURLtoBlob(img.src) : img.src;
+            
             // Dynamically import the package from jsdelivr CDN ESM
             const module = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal/+esm');
             const removeBackground = module.removeBackground;
             
             setProcessing({ visible: true, progress: 20, title: 'AI processing image background...' });
             
-            const processedBlob = await removeBackground(img.src, {
+            const processedBlob = await removeBackground(inputBlob, {
                 debug: false,
+                output: { format: 'image/png', quality: 1 },
                 progress: (key, current, total) => {
                     const percent = Math.round((current / total) * 100);
                     let phase = 'AI is thinking...';
@@ -1143,7 +1191,12 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
             tempCanvas.height = h;
             const tempCtx = tempCanvas.getContext('2d');
             tempCtx.drawImage(resultImg, 0, 0, w, h);
-            const cutoutResult = tempCtx.getImageData(0, 0, w, h);
+            let cutoutResult = tempCtx.getImageData(0, 0, w, h);
+            
+            // Apply edge softness post-processing
+            if (softness > 0) {
+                cutoutResult = applyEdgeSoftness(cutoutResult, softness);
+            }
             
             // Clean up Object URL
             URL.revokeObjectURL(resultImg.src);
@@ -1151,7 +1204,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
             setResultImageData(cutoutResult);
             setCurrentView('result');
             setProcessing({ visible: false, progress: 0 });
-            showToast('Professional AI Background removed successfully!', 'success');
+            showToast('AI Background removed successfully!', 'success');
             
         } catch (err) {
             console.warn('Primary CDN failed, retrying with backup CDN...', err);
@@ -1161,8 +1214,9 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                 const removeBackground2 = module2.removeBackground;
                 setProcessing({ visible: true, progress: 30, title: 'Retrying with backup AI...' });
                 
-                const processedBlob2 = await removeBackground2(img.src, {
+                const processedBlob2 = await removeBackground2(inputBlob, {
                     debug: false,
+                    output: { format: 'image/png', quality: 1 },
                     progress: (key, current, total) => {
                         const percent = Math.round((current / total) * 100);
                         const overallPercent = 30 + Math.round((percent / 100) * 65);
@@ -1185,7 +1239,13 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                 tempCanvas2.height = h2;
                 const tempCtx2 = tempCanvas2.getContext('2d');
                 tempCtx2.drawImage(resultImg2, 0, 0, w2, h2);
-                const cutoutResult2 = tempCtx2.getImageData(0, 0, w2, h2);
+                let cutoutResult2 = tempCtx2.getImageData(0, 0, w2, h2);
+                
+                // Apply edge softness post-processing
+                if (softness > 0) {
+                    cutoutResult2 = applyEdgeSoftness(cutoutResult2, softness);
+                }
+                
                 URL.revokeObjectURL(resultImg2.src);
                 
                 setResultImageData(cutoutResult2);
