@@ -45,7 +45,7 @@
 
     --font-sans: var(--font-outfit), 'Outfit', -apple-system, sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
-    --font-display: var(--font-syne), 'Syne', sans-serif;
+    --font-display: var(--font-outfit), 'Outfit', -apple-system, sans-serif;
 }
 
 .panel-title, 

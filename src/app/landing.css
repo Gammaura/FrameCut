@@ -39,7 +39,7 @@
 .landing-page-root .section-title,
 .landing-page-root .pricing-title,
 .landing-page-root .logo-container {
-    font-family: var(--font-syne), 'Syne', sans-serif;
+    font-family: var(--font-outfit), 'Outfit', -apple-system, sans-serif;
 }
 
 /* Background glows */

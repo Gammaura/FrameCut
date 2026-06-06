@@ -12,8 +12,8 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-syne), 'Syne', sans-serif;
-  letter-spacing: -0.02em; /* sedikit negatif biar keliatan premium */
+  font-family: var(--font-outfit), 'Outfit', -apple-system, sans-serif;
+  letter-spacing: -0.02em;
 }
 
 h1 {

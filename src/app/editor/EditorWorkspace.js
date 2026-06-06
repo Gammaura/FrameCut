@@ -1929,12 +1929,12 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                 
                 <div style={{ maxWidth: '480px', width: '100%', padding: '40px 32px', textAlign: 'center', background: 'var(--panel-bg)', border: '1px solid var(--panel-border)', position: 'relative', borderRadius: '16px', boxShadow: '0 10px 30px rgba(0,0,0,0.03)', backdropFilter: 'blur(8px)' }}>
                     
-                    <span style={{ marginBottom: '24px', display: 'inline-flex', gap: '4px', fontSize: '28px', fontFamily: 'var(--font-syne), sans-serif' }}>
+                    <span style={{ marginBottom: '24px', display: 'inline-flex', gap: '4px', fontSize: '28px', fontFamily: 'var(--font-outfit), sans-serif' }}>
                         <strong style={{ fontWeight: '900', color: '#475569', letterSpacing: '-0.5px' }}>FRAME</strong>
                         <span style={{ fontWeight: '300', color: '#94a3b8', letterSpacing: '-0.5px' }}>CUT</span>
                     </span>
                     
-                    <h2 style={{ fontSize: '20px', marginBottom: '16px', textTransform: 'uppercase', fontFamily: 'var(--font-syne), sans-serif', color: 'var(--text-color)', letterSpacing: '0.5px' }}>Authentication Required</h2>
+                    <h2 style={{ fontSize: '20px', marginBottom: '16px', textTransform: 'uppercase', fontFamily: 'var(--font-outfit), sans-serif', color: 'var(--text-color)', letterSpacing: '0.5px' }}>Authentication Required</h2>
                     <p style={{ fontSize: '14px', marginBottom: '32px', lineHeight: '1.6', fontFamily: 'var(--font-outfit), sans-serif', color: 'var(--text-muted)' }}>
                         To access FrameCut Studio, please sign in with your account first. 
                         New accounts receive <strong style={{ color: '#2563eb' }}>20 free tokens</strong> immediately.
@@ -1971,7 +1971,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                         <span>← Dashboard</span>
                     </Link>
                     <Link href="/editor" className="logo" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-                        <span style={{ textTransform: 'uppercase', letterSpacing: '0.04em', display: 'inline-flex', alignItems: 'center', fontSize: '20px', fontFamily: 'var(--font-syne), sans-serif' }}>
+                        <span style={{ textTransform: 'uppercase', letterSpacing: '0.04em', display: 'inline-flex', alignItems: 'center', fontSize: '20px', fontFamily: 'var(--font-outfit), sans-serif' }}>
                             <strong style={{ fontWeight: '900', color: '#09090b' }}>FRAME</strong>
                             <span style={{ fontWeight: '300', color: '#94a3b8' }}>CUT</span>
                         </span>

@@ -10,6 +10,17 @@ export default function Pricing() {
     const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' | 'yearly'
     const [activeFaq, setActiveFaq] = useState(null);
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+    const [currency, setCurrency] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('framecut_preferred_currency') || 'USD';
+        }
+        return 'USD';
+    });
+
+    const handleCurrencyChange = (curr) => {
+        setCurrency(curr);
+        localStorage.setItem('framecut_preferred_currency', curr);
+    };
 
     const toggleFaq = (index) => {
         setActiveFaq(activeFaq === index ? null : index);
@@ -28,7 +39,10 @@ export default function Pricing() {
     const plans = [
         {
             name: "Starter",
-            price: { monthly: 0, yearly: 0 },
+            price: {
+                USD: { monthly: 0, yearly: 0 },
+                IDR: { monthly: 0, yearly: 0 }
+            },
             desc: "Perfect for casual creators and beginners looking to explore frame editing.",
             features: [
                 "Up to 5 exports per day",
@@ -42,7 +56,10 @@ export default function Pricing() {
         },
         {
             name: "Pro",
-            price: { monthly: 9.99, yearly: 7.99 },
+            price: {
+                USD: { monthly: 9.99, yearly: 7.99 },
+                IDR: { monthly: 150000, yearly: 120000 }
+            },
             desc: "For professional designers and creators who need fast, unlimited exports.",
             features: [
                 "Unlimited exports",
@@ -58,7 +75,10 @@ export default function Pricing() {
         },
         {
             name: "Team",
-            price: { monthly: 29.99, yearly: 23.99 },
+            price: {
+                USD: { monthly: 29.99, yearly: 23.99 },
+                IDR: { monthly: 450000, yearly: 360000 }
+            },
             desc: "Collaboration tools and high-scale API access for studios and teams.",
             features: [
                 "Everything in Pro",
@@ -68,7 +88,7 @@ export default function Pricing() {
                 "Advanced batch processing API",
                 "24/7 dedicated support"
             ],
-            cta: "Contact Sales",
+            cta: "Upgrade to Team",
             featured: false
         }
     ];
@@ -217,31 +237,52 @@ export default function Pricing() {
                     Unlock unlimited rendering speeds, advanced masking control, and complete API integration.
                 </p>
 
-                <div className="toggle-container">
-                    <button 
-                        className={`toggle-btn ${billingCycle === 'monthly' ? 'active' : ''}`}
-                        onClick={() => setBillingCycle('monthly')}
-                    >
-                        Monthly
-                    </button>
-                    <button 
-                        className={`toggle-btn ${billingCycle === 'yearly' ? 'active' : ''}`}
-                        onClick={() => setBillingCycle('yearly')}
-                    >
-                        Yearly (Save 20%)
-                    </button>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', marginBottom: '40px' }}>
+                    <div className="toggle-container" style={{ margin: 0 }}>
+                        <button 
+                            className={`toggle-btn ${billingCycle === 'monthly' ? 'active' : ''}`}
+                            onClick={() => setBillingCycle('monthly')}
+                        >
+                            Monthly
+                        </button>
+                        <button 
+                            className={`toggle-btn ${billingCycle === 'yearly' ? 'active' : ''}`}
+                            onClick={() => setBillingCycle('yearly')}
+                        >
+                            Yearly (Save 20%)
+                        </button>
+                    </div>
+
+                    <div className="toggle-container" style={{ margin: 0, padding: '4px', background: 'var(--panel-bg)', borderRadius: '12px', border: '1px solid var(--panel-border)', display: 'inline-flex' }}>
+                        <button 
+                            type="button"
+                            className={`toggle-btn ${currency === 'USD' ? 'active' : ''}`}
+                            style={{ padding: '6px 16px', fontSize: '13px' }}
+                            onClick={() => handleCurrencyChange('USD')}
+                        >
+                            USD ($)
+                        </button>
+                        <button 
+                            type="button"
+                            className={`toggle-btn ${currency === 'IDR' ? 'active' : ''}`}
+                            style={{ padding: '6px 16px', fontSize: '13px' }}
+                            onClick={() => handleCurrencyChange('IDR')}
+                        >
+                            IDR (Rp)
+                        </button>
+                    </div>
                 </div>
 
                 <div className="pricing-grid">
                     {plans.map((plan, i) => {
-                        const price = billingCycle === 'monthly' ? plan.price.monthly : plan.price.yearly;
+                        const price = billingCycle === 'monthly' ? plan.price[currency].monthly : plan.price[currency].yearly;
                         return (
                             <div key={i} className={`pricing-card ${plan.featured ? 'featured' : ''}`}>
                                 {plan.featured && <div className="pricing-badge">Popular</div>}
                                 <div>
                                     <div className="pricing-tier">{plan.name}</div>
                                     <div className="pricing-price">
-                                        ${price}
+                                        {currency === 'USD' ? `$${price}` : `Rp ${price.toLocaleString('id-ID')}`}
                                         <span>/ {billingCycle === 'monthly' ? 'mo' : 'mo (billed annually)'}</span>
                                     </div>
                                     <p className="pricing-desc">{plan.desc}</p>

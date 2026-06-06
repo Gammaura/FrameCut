@@ -27,6 +27,9 @@ export default function Modals() {
     const [expiry, setExpiry] = useState('');
     const [cvc, setCvc] = useState('');
     const [paymentStatus, setPaymentStatus] = useState('idle'); // 'idle' | 'processing' | 'success'
+    const [currency, setCurrency] = useState('USD'); // 'USD' | 'IDR'
+    const [paymentMethod, setPaymentMethod] = useState('card'); // 'card' | 'qris'
+    const [qrisTimer, setQrisTimer] = useState(300); // 5 minutes (300 seconds)
 
     // Reset payment states when modal opens
     useEffect(() => {
@@ -35,8 +38,31 @@ export default function Modals() {
             setCardNumber('');
             setExpiry('');
             setCvc('');
+            
+            // Sync currency selection from localStorage if set
+            const preferred = typeof window !== 'undefined' ? (localStorage.getItem('framecut_preferred_currency') || 'USD') : 'USD';
+            setCurrency(preferred);
+            setPaymentMethod(preferred === 'IDR' ? 'qris' : 'card');
+            setQrisTimer(300);
         }
     }, [showUpgradeModal]);
+
+    // QRIS Timer effect
+    useEffect(() => {
+        let timer;
+        if (showUpgradeModal && paymentMethod === 'qris' && paymentStatus === 'idle') {
+            timer = setInterval(() => {
+                setQrisTimer(prev => (prev > 0 ? prev - 1 : 300));
+            }, 1000);
+        }
+        return () => clearInterval(timer);
+    }, [showUpgradeModal, paymentMethod, paymentStatus]);
+
+    const formatTime = (secs) => {
+        const mins = Math.floor(secs / 60);
+        const s = secs % 60;
+        return `${mins.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    };
 
     // Reset Google auth states when modal closes or opens
     useEffect(() => {
@@ -214,75 +240,176 @@ export default function Modals() {
                                     <p className="modal-subtitle">Get high-volume token credits and unlock developer API access.</p>
                                 </div>
 
-                                <form onSubmit={handlePaymentSubmit}>
-                                    <label className="form-label">Select Plan</label>
-                                    <div className="upgrade-plan-selector">
-                                        <div 
-                                            className={`upgrade-plan-card ${selectedTier === 'pro' ? 'active' : ''}`}
-                                            onClick={() => setSelectedTier('pro')}
-                                        >
-                                            <div className="tier-name">Pro Tier</div>
-                                            <div className="tier-price">$9.99/mo</div>
+                                <form onSubmit={(e) => { e.preventDefault(); handlePaymentSubmit(); }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+                                        <div>
+                                            <label className="form-label">Select Plan</label>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                <div 
+                                                    className={`upgrade-plan-card ${selectedTier === 'pro' ? 'active' : ''}`}
+                                                    onClick={() => setSelectedTier('pro')}
+                                                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', border: selectedTier === 'pro' ? '2px solid var(--accent-purple)' : '1px solid var(--border-subtle)', borderRadius: '12px', cursor: 'pointer', background: selectedTier === 'pro' ? 'rgba(37, 99, 235, 0.03)' : '#fff' }}
+                                                >
+                                                    <span style={{ fontWeight: '700', fontSize: '13px' }}>Pro Tier</span>
+                                                    <span style={{ fontWeight: '800', color: 'var(--accent-purple)', fontSize: '13px' }}>
+                                                        {currency === 'USD' ? '$9.99' : 'Rp 150.000'}
+                                                    </span>
+                                                </div>
+                                                <div 
+                                                    className={`upgrade-plan-card ${selectedTier === 'team' ? 'active' : ''}`}
+                                                    onClick={() => setSelectedTier('team')}
+                                                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', border: selectedTier === 'team' ? '2px solid var(--accent-purple)' : '1px solid var(--border-subtle)', borderRadius: '12px', cursor: 'pointer', background: selectedTier === 'team' ? 'rgba(37, 99, 235, 0.03)' : '#fff' }}
+                                                >
+                                                    <span style={{ fontWeight: '700', fontSize: '13px' }}>Team Tier</span>
+                                                    <span style={{ fontWeight: '800', color: 'var(--accent-purple)', fontSize: '13px' }}>
+                                                        {currency === 'USD' ? '$29.99' : 'Rp 450.000'}
+                                                    </span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div 
-                                            className={`upgrade-plan-card ${selectedTier === 'team' ? 'active' : ''}`}
-                                            onClick={() => setSelectedTier('team')}
-                                        >
-                                            <div className="tier-name">Team Tier</div>
-                                            <div className="tier-price">$29.99/mo</div>
+
+                                        <div>
+                                            <label className="form-label">Currency</label>
+                                            <div style={{ display: 'flex', gap: '6px', height: '42px' }}>
+                                                <button 
+                                                    type="button" 
+                                                    style={{ flex: 1, border: currency === 'USD' ? '1px solid #09090b' : '1px solid var(--border-subtle)', background: currency === 'USD' ? '#09090b' : '#fff', color: currency === 'USD' ? '#fff' : 'var(--text-secondary)', borderRadius: '8px', cursor: 'pointer', fontWeight: '700', fontSize: '12px' }}
+                                                    onClick={() => { setCurrency('USD'); localStorage.setItem('framecut_preferred_currency', 'USD'); }}
+                                                >
+                                                    USD ($)
+                                                </button>
+                                                <button 
+                                                    type="button" 
+                                                    style={{ flex: 1, border: currency === 'IDR' ? '1px solid #09090b' : '1px solid var(--border-subtle)', background: currency === 'IDR' ? '#09090b' : '#fff', color: currency === 'IDR' ? '#fff' : 'var(--text-secondary)', borderRadius: '8px', cursor: 'pointer', fontWeight: '700', fontSize: '12px' }}
+                                                    onClick={() => { setCurrency('IDR'); localStorage.setItem('framecut_preferred_currency', 'IDR'); setPaymentMethod('qris'); }}
+                                                >
+                                                    IDR (Rp)
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <div className="form-group">
-                                        <label className="form-label">Card Number</label>
-                                        <input 
-                                            type="text" 
-                                            className="form-input" 
-                                            placeholder="4111 2222 3333 4444"
-                                            value={cardNumber}
-                                            onChange={(e) => setCardNumber(e.target.value.replace(/[^0-9]/g, ''))}
-                                            maxLength={16}
-                                            required 
-                                        />
-                                    </div>
-
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                                        <div className="form-group">
-                                            <label className="form-label">Expiration (MM/YY)</label>
-                                            <input 
-                                                type="text" 
-                                                className="form-input" 
-                                                placeholder="12/28"
-                                                value={expiry}
-                                                onChange={(e) => setExpiry(e.target.value)}
-                                                maxLength={5}
-                                                required 
-                                            />
-                                        </div>
-                                        <div className="form-group">
-                                            <label className="form-label">CVC</label>
-                                            <input 
-                                                type="password" 
-                                                className="form-input" 
-                                                placeholder="123"
-                                                value={cvc}
-                                                onChange={(e) => setCvc(e.target.value.replace(/[^0-9]/g, ''))}
-                                                maxLength={3}
-                                                required 
-                                            />
+                                    <div style={{ marginBottom: '16px' }}>
+                                        <label className="form-label">Payment Method</label>
+                                        <div style={{ display: 'flex', gap: '6px' }}>
+                                            <button 
+                                                type="button" 
+                                                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', border: paymentMethod === 'card' ? '1px solid #09090b' : '1px solid var(--border-subtle)', background: paymentMethod === 'card' ? '#09090b' : '#fff', color: paymentMethod === 'card' ? '#fff' : 'var(--text-secondary)', borderRadius: '8px', cursor: 'pointer', fontWeight: '700', fontSize: '12px' }}
+                                                onClick={() => setPaymentMethod('card')}
+                                            >
+                                                💳 Credit Card
+                                            </button>
+                                            <button 
+                                                type="button" 
+                                                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', border: paymentMethod === 'qris' ? '1px solid #09090b' : '1px solid var(--border-subtle)', background: paymentMethod === 'qris' ? '#09090b' : '#fff', color: paymentMethod === 'qris' ? '#fff' : 'var(--text-secondary)', borderRadius: '8px', cursor: 'pointer', fontWeight: '700', fontSize: '12px' }}
+                                                onClick={() => setPaymentMethod('qris')}
+                                            >
+                                                📱 QRIS / E-Wallet
+                                            </button>
                                         </div>
                                     </div>
 
-                                    <button 
-                                        type="submit" 
-                                        className="modal-submit" 
-                                        style={{ marginTop: '16px' }}
-                                        disabled={paymentStatus === 'processing'}
-                                    >
-                                        {paymentStatus === 'processing' 
-                                            ? 'Processing Payment...' 
-                                            : `Pay $${selectedTier === 'pro' ? '9.99' : '29.99'}`}
-                                    </button>
+                                    {paymentMethod === 'card' ? (
+                                        <>
+                                            <div className="form-group" style={{ marginBottom: '12px' }}>
+                                                <label className="form-label">Card Number</label>
+                                                <input 
+                                                    type="text" 
+                                                    className="form-input" 
+                                                    placeholder="4111 2222 3333 4444"
+                                                    value={cardNumber}
+                                                    onChange={(e) => setCardNumber(e.target.value.replace(/[^0-9]/g, ''))}
+                                                    maxLength={16}
+                                                    required 
+                                                />
+                                            </div>
+
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+                                                <div className="form-group" style={{ margin: 0 }}>
+                                                    <label className="form-label">Expiration (MM/YY)</label>
+                                                    <input 
+                                                        type="text" 
+                                                        className="form-input" 
+                                                        placeholder="12/28"
+                                                        value={expiry}
+                                                        onChange={(e) => setExpiry(e.target.value)}
+                                                        maxLength={5}
+                                                        required 
+                                                    />
+                                                </div>
+                                                <div className="form-group" style={{ margin: 0 }}>
+                                                    <label className="form-label">CVC</label>
+                                                    <input 
+                                                        type="password" 
+                                                        className="form-input" 
+                                                        placeholder="123"
+                                                        value={cvc}
+                                                        onChange={(e) => setCvc(e.target.value.replace(/[^0-9]/g, ''))}
+                                                        maxLength={3}
+                                                        required 
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <button 
+                                                type="submit" 
+                                                className="modal-submit" 
+                                                style={{ marginTop: '8px' }}
+                                                disabled={paymentStatus === 'processing'}
+                                            >
+                                                {paymentStatus === 'processing' 
+                                                    ? 'Processing Payment...' 
+                                                    : `Pay ${currency === 'USD' ? '$' : 'Rp '}${selectedTier === 'pro' ? (currency === 'USD' ? '9.99' : '150.000') : (currency === 'USD' ? '29.99' : '450.000')}`}
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px', border: '1px dashed var(--border-subtle)', borderRadius: '16px', background: '#fafafa', margin: '12px 0' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', marginBottom: '12px', fontSize: '11px', color: 'var(--text-muted)' }}>
+                                                <span>SCAN QRIS CODE</span>
+                                                <span style={{ fontWeight: '700', color: '#ef4444' }}>⏳ Expires in: {formatTime(qrisTimer)}</span>
+                                            </div>
+
+                                            <svg width="150" height="150" viewBox="0 0 100 100" style={{ background: '#fff', padding: '8px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', marginBottom: '12px' }}>
+                                                <rect x="5" y="5" width="20" height="20" fill="#09090b" />
+                                                <rect x="10" y="10" width="10" height="10" fill="#fff" />
+                                                <rect x="75" y="5" width="20" height="20" fill="#09090b" />
+                                                <rect x="80" y="10" width="10" height="10" fill="#fff" />
+                                                <rect x="5" y="75" width="20" height="20" fill="#09090b" />
+                                                <rect x="10" y="80" width="10" height="10" fill="#fff" />
+                                                <rect x="35" y="5" width="5" height="5" fill="#09090b" />
+                                                <rect x="45" y="15" width="10" height="5" fill="#09090b" />
+                                                <rect x="60" y="10" width="5" height="10" fill="#09090b" />
+                                                <rect x="5" y="35" width="10" height="5" fill="#09090b" />
+                                                <rect x="20" y="45" width="5" height="10" fill="#09090b" />
+                                                <rect x="75" y="35" width="5" height="10" fill="#09090b" />
+                                                <rect x="35" y="35" width="30" height="30" fill="#09090b" opacity="0.85" />
+                                                <rect x="40" y="40" width="20" height="20" fill="#fff" />
+                                                <g transform="translate(39, 46)">
+                                                    <rect x="0" y="0" width="22" height="9" rx="2" fill="#2563eb" />
+                                                    <text x="11" y="6.5" fill="#fff" fontSize="4.5" fontWeight="bold" textAnchor="middle" fontFamily="sans-serif">QRIS</text>
+                                                </g>
+                                            </svg>
+
+                                            <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+                                                <div style={{ fontWeight: '800', fontSize: '16px', color: '#09090b' }}>
+                                                    {currency === 'USD' ? `Rp ${(selectedTier === 'pro' ? 150000 : 450000).toLocaleString('id-ID')}` : `Rp ${(selectedTier === 'pro' ? 150000 : 450000).toLocaleString('id-ID')}`}
+                                                </div>
+                                                <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', lineHeight: '1.4' }}>
+                                                    Scan with GoPay, OVO, Dana, LinkAja, ShopeePay, or Mobile Banking.
+                                                </p>
+                                            </div>
+
+                                            <button 
+                                                type="button" 
+                                                className="modal-submit" 
+                                                onClick={() => handlePaymentSubmit()}
+                                                disabled={paymentStatus === 'processing'}
+                                                style={{ width: '100%' }}
+                                            >
+                                                {paymentStatus === 'processing' ? 'Verifying Transaction...' : 'I Have Paid'}
+                                            </button>
+                                        </div>
+                                    )}
                                 </form>
                             </>
                         )}
