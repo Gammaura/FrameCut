@@ -156,6 +156,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
     const [targetColor, setTargetColor] = useState({ r: 204, g: 0, b: 0 }); // Default red
     const [lastClickedPixel, setLastClickedPixel] = useState(null);
     const [bgRemoverManualEraseMode, setBgRemoverManualEraseMode] = useState(false);
+    const [bgRemoverBrushMode, setBgRemoverBrushMode] = useState('erase'); // 'erase' | 'restore'
     const [manualEraseBrushSize, setManualEraseBrushSize] = useState(24);
     const [isManualErasing, setIsManualErasing] = useState(false);
 
@@ -904,6 +905,45 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
         return { r: 255, g: 255, b: 255 }; // default white
     };
 
+    // Color-guided AI mask refinement: restores pixels the AI incorrectly removed
+    // when their original color clearly differs from the detected background color.
+    const refineCutoutWithColor = (cutoutImgData, origImgData) => {
+        if (!cutoutImgData || !origImgData) return cutoutImgData;
+        const cW = cutoutImgData.width;
+        const cH = cutoutImgData.height;
+        const oW = origImgData.width;
+        const oH = origImgData.height;
+
+        // Only refine if dimensions match (skip if AI returned a different size)
+        if (cW !== oW || cH !== oH) return cutoutImgData;
+
+        const bgColor = detectBackgroundColorFromCorners(origImgData);
+        const cData = cutoutImgData.data;
+        const oData = origImgData.data;
+
+        for (let i = 0; i < cData.length; i += 4) {
+            const alpha = cData[i + 3];
+
+            // Only consider pixels the AI made transparent or semi-transparent
+            if (alpha < 120) {
+                const r = oData[i];
+                const g = oData[i + 1];
+                const b = oData[i + 2];
+                const dist = colorDistance(r, g, b, bgColor.r, bgColor.g, bgColor.b);
+
+                // If the original pixel color is clearly NOT the background color,
+                // the AI made a mistake — restore the pixel from the original image.
+                if (dist > 55) {
+                    cData[i]     = r;
+                    cData[i + 1] = g;
+                    cData[i + 2] = b;
+                    cData[i + 3] = oData[i + 3]; // restore original alpha (typically 255)
+                }
+            }
+        }
+        return cutoutImgData;
+    };
+
     // Fast AI Fallback (MediaPipe Selfie Segmentation)
     const applyMediaPipeCutout = async (img, imgData) => {
         setProcessing({ visible: true, progress: 20, title: 'Loading Fast AI Model...' });
@@ -1166,6 +1206,9 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
             // Clean up Object URL
             URL.revokeObjectURL(resultImg.src);
             
+            // Color-guided refinement: restore foreground pixels the AI incorrectly removed
+            refineCutoutWithColor(cutoutResult, imgData);
+            
             setResultImageData(cutoutResult);
             setCurrentView('result');
             setProcessing({ visible: false, progress: 0 });
@@ -1207,6 +1250,9 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                 
                 URL.revokeObjectURL(resultImg2.src);
                 
+                // Color-guided refinement: restore foreground pixels the AI incorrectly removed
+                refineCutoutWithColor(cutoutResult2, imgData);
+                
                 setResultImageData(cutoutResult2);
                 setCurrentView('result');
                 setProcessing({ visible: false, progress: 0 });
@@ -1218,7 +1264,7 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
         }
     };
 
-    // Manual pixel eraser for background remover cleanup
+    // Manual pixel eraser/restorer for background remover cleanup
     const erasePixels = (cx, cy, radius) => {
         const sourceData = resultImageData || originalImageData;
         if (!sourceData) return;
@@ -1243,9 +1289,28 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                 const distSq = (x - cx) * (x - cx) + (y - cy) * (y - cy);
                 if (distSq <= rSq) {
                     const idx = (y * w + x) * 4;
-                    if (data[idx + 3] !== 0) {
-                        data[idx + 3] = 0; // Set Alpha to 0 (make transparent)
-                        changed = true;
+                    if (bgRemoverBrushMode === 'erase') {
+                        if (data[idx + 3] !== 0) {
+                            data[idx + 3] = 0; // Set Alpha to 0 (make transparent)
+                            changed = true;
+                        }
+                    } else {
+                        // Restore mode: read from originalImageData
+                        if (originalImageData) {
+                            const origIdx = idx;
+                            if (
+                                data[origIdx] !== originalImageData.data[origIdx] ||
+                                data[origIdx + 1] !== originalImageData.data[origIdx + 1] ||
+                                data[origIdx + 2] !== originalImageData.data[origIdx + 2] ||
+                                data[origIdx + 3] !== originalImageData.data[origIdx + 3]
+                            ) {
+                                data[origIdx] = originalImageData.data[origIdx];
+                                data[origIdx + 1] = originalImageData.data[origIdx + 1];
+                                data[origIdx + 2] = originalImageData.data[origIdx + 2];
+                                data[origIdx + 3] = originalImageData.data[origIdx + 3];
+                                changed = true;
+                            }
+                        }
                     }
                 }
             }
@@ -2263,33 +2328,114 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                                     <div style={{ marginTop: '20px', borderTop: '1px solid var(--panel-border)', paddingTop: '16px' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                                             <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-color)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                🧹 Manual Erase Brush
+                                                🖌️ Manual Brush Tool
                                             </span>
-                                            <label style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer' }}>
+                                            <label style={{ position: 'relative', display: 'inline-block', width: '38px', height: '22px', cursor: 'pointer' }}>
                                                 <input 
                                                     type="checkbox" 
                                                     checked={bgRemoverManualEraseMode} 
                                                     onChange={(e) => setBgRemoverManualEraseMode(e.target.checked)}
-                                                    style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                                                    style={{ opacity: 0, width: 0, height: 0 }}
                                                 />
+                                                <span style={{
+                                                    position: 'absolute',
+                                                    cursor: 'pointer',
+                                                    inset: 0,
+                                                    background: bgRemoverManualEraseMode ? '#2563eb' : '#cbd5e1',
+                                                    transition: 'all 0.3s ease',
+                                                    borderRadius: '34px'
+                                                }}>
+                                                    <span style={{
+                                                        position: 'absolute',
+                                                        content: '""',
+                                                        height: '16px',
+                                                        width: '16px',
+                                                        left: bgRemoverManualEraseMode ? '18px' : '4px',
+                                                        bottom: '3px',
+                                                        background: '#ffffff',
+                                                        transition: 'all 0.3s ease',
+                                                        borderRadius: '50%',
+                                                        boxShadow: '0 1px 3px rgba(0,0,0,0.15)'
+                                                    }}></span>
+                                                </span>
                                             </label>
                                         </div>
                                         <p style={{ fontSize: '11px', color: 'var(--text-muted)', lineHeight: '1.4', margin: '0 0 12px 0' }}>
-                                            Brush over any leftover objects or edges in the "Result" view to make them fully transparent.
+                                            Activate to edit specific regions manually. Switch view to "Result View" to see your brush edits.
                                         </p>
                                         
                                         {bgRemoverManualEraseMode && (
-                                            <div className="control-group">
-                                                <label className="control-label">Eraser Size: <span className="control-value">{manualEraseBrushSize}px</span></label>
-                                                <input 
-                                                    type="range" 
-                                                    className="slider" 
-                                                    min="5" 
-                                                    max="80" 
-                                                    value={manualEraseBrushSize} 
-                                                    onChange={(e) => setManualEraseBrushSize(parseInt(e.target.value))} 
-                                                />
-                                            </div>
+                                            <>
+                                                {/* Erase / Restore Mode Toggle */}
+                                                <div style={{
+                                                    display: 'flex',
+                                                    background: '#f1f5f9',
+                                                    padding: '3px',
+                                                    borderRadius: '8px',
+                                                    border: '1px solid #e2e8f0',
+                                                    marginBottom: '12px'
+                                                }}>
+                                                    <button 
+                                                        onClick={() => setBgRemoverBrushMode('erase')} 
+                                                        style={{ 
+                                                            flex: 1,
+                                                            border: 'none', 
+                                                            background: bgRemoverBrushMode === 'erase' ? '#ffffff' : 'transparent', 
+                                                            cursor: 'pointer', 
+                                                            color: bgRemoverBrushMode === 'erase' ? '#0f172a' : '#64748b', 
+                                                            fontWeight: '600', 
+                                                            padding: '5px 10px', 
+                                                            fontSize: '12px',
+                                                            borderRadius: '6px',
+                                                            boxShadow: bgRemoverBrushMode === 'erase' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                                                            transition: 'all 0.15s ease',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            gap: '4px'
+                                                        }}
+                                                    >
+                                                        🧹 Erase
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => setBgRemoverBrushMode('restore')} 
+                                                        style={{ 
+                                                            flex: 1,
+                                                            border: 'none', 
+                                                            background: bgRemoverBrushMode === 'restore' ? '#ffffff' : 'transparent', 
+                                                            cursor: 'pointer', 
+                                                            color: bgRemoverBrushMode === 'restore' ? '#0f172a' : '#64748b', 
+                                                            fontWeight: '600', 
+                                                            padding: '5px 10px', 
+                                                            fontSize: '12px',
+                                                            borderRadius: '6px',
+                                                            boxShadow: bgRemoverBrushMode === 'restore' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                                                            transition: 'all 0.15s ease',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            gap: '4px'
+                                                        }}
+                                                    >
+                                                        ✨ Restore
+                                                    </button>
+                                                </div>
+
+                                                <div className="control-group">
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                                        <label className="control-label" style={{ margin: 0 }}>Brush Size</label>
+                                                        <span className="control-value" style={{ fontSize: '11px', fontWeight: 'bold' }}>{manualEraseBrushSize}px</span>
+                                                    </div>
+                                                    <input 
+                                                        type="range" 
+                                                        className="slider" 
+                                                        min="5" 
+                                                        max="80" 
+                                                        value={manualEraseBrushSize} 
+                                                        onChange={(e) => setManualEraseBrushSize(parseInt(e.target.value))} 
+                                                    />
+                                                </div>
+                                            </>
                                         )}
                                     </div>
                                 </>
