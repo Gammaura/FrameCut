@@ -2836,7 +2836,6 @@ export default function EditorWorkspace({ defaultTool = 'bg-remover' }) {
                                                 borderRadius: '4px',
                                                 boxShadow: '0 20px 48px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.02)',
                                                 border: '1px solid rgba(0, 0, 0, 0.06)',
-                                                overflow: 'hidden',
                                                 backgroundImage: 'conic-gradient(#d4d4d8 0.25turn, #fafafa 0.25turn 0.5turn, #d4d4d8 0.5turn 0.75turn, #fafafa 0.75turn)',
                                                 backgroundSize: '20px 20px'
                                             }}
