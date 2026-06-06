@@ -1159,7 +1159,7 @@
 /* ===== FOOTER ===== */
 .footer {
     border-top: 1px solid var(--panel-border);
-    padding: 40px 24px;
+    padding: 60px 24px;
     background: var(--bg-color);
 }
 
@@ -1168,9 +1168,9 @@
     margin: 0 auto;
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     flex-wrap: wrap;
-    gap: 20px;
+    gap: 40px;
 }
 
 .footer-logo {
@@ -1180,6 +1180,60 @@
     text-decoration: none;
     font-weight: 700;
     color: var(--text-color);
+}
+
+.footer-brand {
+    max-width: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.footer-desc {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+.footer-links {
+    display: flex;
+    gap: 60px;
+}
+
+.footer-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.footer-heading {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-color);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+}
+
+.footer-link-item {
+    font-size: 14px;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s, transform 0.2s;
+    display: block;
+}
+
+.footer-link-item:hover {
+    color: var(--text-color);
+    transform: translateX(2px);
+}
+
+.footer-bottom {
+    max-width: 1200px;
+    margin: 40px auto 0;
+    padding-top: 24px;
+    border-top: 1px solid var(--panel-border);
+    width: 100%;
 }
 
 .footer-copyright {
@@ -1359,16 +1413,26 @@
 }
 
 .faq-item {
-    background: rgba(24, 24, 27, 0.4);
+    background: var(--panel-bg);
     border: 1px solid var(--panel-border);
     border-radius: 16px;
     margin-bottom: 16px;
     overflow: hidden;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(9, 9, 11, 0.01);
+}
+
+.faq-item:hover {
+    background: rgba(244, 244, 245, 0.95);
+    border-color: rgba(9, 9, 11, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(9, 9, 11, 0.04);
 }
 
 .faq-question {
     padding: 24px;
     font-weight: 700;
+    color: var(--text-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1376,10 +1440,12 @@
 }
 
 .faq-answer {
-    padding: 0 24px 24px;
+    padding: 20px 24px 24px;
     color: var(--text-muted);
-    font-size: 14px;
+    font-size: 14.5px;
     line-height: 1.6;
+    border-top: 1px solid var(--panel-border);
+    background: rgba(255, 255, 255, 0.4);
 }
 
 /* ===== API DOCUMENTATION STYLES ===== */
